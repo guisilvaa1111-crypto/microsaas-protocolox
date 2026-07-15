@@ -112,15 +112,30 @@ Deno.serve(async (req) => {
   // 2) lê o corpo e extrai o e-mail
   let payload: any = {};
   try { payload = await req.json(); } catch { /* corpo vazio/!json */ }
+
+  // LOG do payload recebido (aparece em Supabase → Edge Functions → Logs).
+  // Serve para descobrir o formato exato da sua plataforma (ex.: Wiven).
+  console.log("[checkout-webhook] payload recebido:", JSON.stringify(payload));
+
+  // Modo inspeção: chame a URL com &debug=1 para ver o payload SEM criar usuário.
+  if (url.searchParams.get("debug") === "1") {
+    return json({ debug: true, payloadRecebido: payload });
+  }
+
   const email = extractEmail(payload);
   const name = extractName(payload);
-  if (!email) return json({ error: "E-mail do comprador não encontrado no webhook" }, 400);
+  if (!email) return json({ error: "E-mail do comprador não encontrado no webhook", payloadRecebido: payload }, 400);
 
-  // (Opcional) validar status de aprovação por plataforma:
+  // ⚠️ FILTRO DE STATUS — libere acesso SÓ em compra aprovada.
+  // Ative depois de capturar o payload real da Wiven (troque CAMPO/VALOR):
+  //   const status = payload?.status ?? payload?.event ?? payload?.data?.status;
+  //   if (String(status).toLowerCase() !== "aprovado") {
+  //     return json({ ignored: true, motivo: "evento não é compra aprovada", status });
+  //   }
+  // Exemplos de outras plataformas:
   //   Kiwify:  payload.order_status === "paid"
   //   Hotmart: payload.data?.purchase?.status === "APPROVED"
   //   Stripe:  payload.type === "checkout.session.completed"
-  // Descomente e ajuste quando definir a plataforma.
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
