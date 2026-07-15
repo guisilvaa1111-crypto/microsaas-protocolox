@@ -11,6 +11,14 @@
 # ==================================================================
 $ErrorActionPreference = 'Stop'
 
+# Mantém a janela aberta e mostra o erro se algo der problema (não fecha sozinho).
+trap {
+  Write-Host ""
+  Write-Host "ERRO: $($_.Exception.Message)" -ForegroundColor Red
+  Read-Host "Pressione Enter para fechar"
+  exit 1
+}
+
 # --- Configurações (o URL é público; o bucket idem) ---
 $SUPABASE_URL = "https://ihdccpxqjjysjsxkdrlm.supabase.co"
 $BUCKET       = "audios"
@@ -50,4 +58,6 @@ foreach ($f in $files) {
 }
 Write-Host ""
 Write-Host "Enviados: $ok | Falhas: $fail"
-if ($fail -eq 0) { Write-Host "Tudo certo! Os audios estao protegidos no bucket privado." }
+if ($fail -eq 0) { Write-Host "Tudo certo! Os audios estao protegidos no bucket privado." -ForegroundColor Green }
+Write-Host ""
+Read-Host "Pressione Enter para fechar"
