@@ -1,0 +1,20 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+
+# Dependências (caso adicione build no futuro)
+node_modules/
+dist/
+
+# Segredos (chaves de API do futuro backend — nunca versionar)
+.env
+.env.local
+*.local
+
+# Claude Code (local)
+.claude/

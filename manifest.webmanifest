@@ -1,0 +1,14 @@
+{
+  "name": "Protocolo X",
+  "short_name": "Protocolo X",
+  "description": "Áudios espirituais para descalcificação da pineal, meditação, autoconhecimento e prosperidade.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0918",
+  "theme_color": "#0a0918",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
