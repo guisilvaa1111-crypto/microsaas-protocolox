@@ -14,5 +14,9 @@
  * ------------------------------------------------------------------
  */
 
-const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
-const SUPABASE_ANON_KEY = "COLE_AQUI_A_SUA_ANON_PUBLIC_KEY";
+const SUPABASE_URL = "https://ihdccpxqjjysjsxkdrlm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImloZGNjcHhxamp5c2pzeGtkcmxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNDMzMzksImV4cCI6MjA5OTcxOTMzOX0.XHDmSwneiAxOm2xyN6kVC4JJRTb4xsBaz4CGV0vMYeA";
+
+// Nome do bucket PRIVADO onde ficam os áudios (Supabase Storage).
+// Deixe "audios" a menos que você crie o bucket com outro nome.
+const SUPABASE_AUDIO_BUCKET = "audios";

@@ -18,3 +18,7 @@ dist/
 
 # Claude Code (local)
 .claude/
+
+# Áudios: NÃO versionar (ficam protegidos no Supabase Storage, bucket privado).
+# Os arquivos continuam localmente na sua máquina para você subir ao bucket.
+audio/

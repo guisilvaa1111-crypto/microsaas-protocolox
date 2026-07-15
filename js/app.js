@@ -294,15 +294,52 @@ function render() {
    ================================================================ */
 function trackById(id) { return TRACKS.find((t) => t.id === id); }
 
-function playTrack(id) {
+// Nome do bucket privado no Supabase Storage (definido em supabase-config.js).
+const AUDIO_BUCKET = (typeof SUPABASE_AUDIO_BUCKET !== "undefined") ? SUPABASE_AUDIO_BUCKET : "audios";
+const signedCache = new Map(); // id -> { url, exp }  (evita gerar link a cada play)
+
+/*
+ * resolveSrc — decide de onde o áudio vem:
+ *   • Com Supabase configurado: gera um LINK ASSINADO temporário do bucket
+ *     privado. Só funciona para usuário autenticado -> conteúdo protegido.
+ *   • Sem Supabase (modo demonstração/local): usa o arquivo local audio/.
+ */
+async function resolveSrc(t) {
+  const client = getClient();
+  if (!client) return trackUrl(t); // modo local/demonstração
+
+  const cached = signedCache.get(t.id);
+  if (cached && cached.exp > Date.now() + 30000) return cached.url;
+
+  const { data, error } = await client.storage
+    .from(AUDIO_BUCKET)
+    .createSignedUrl(t.file, 3600); // válido por 1 hora
+  if (error || !data) throw new Error(error ? error.message : "sem URL assinada");
+
+  signedCache.set(t.id, { url: data.signedUrl, exp: Date.now() + 3600 * 1000 });
+  return data.signedUrl;
+}
+
+let playToken = 0; // protege contra corrida quando trocam de faixa rápido
+
+async function playTrack(id) {
   const t = trackById(id);
   if (!t) return;
   currentId = id;
-  audio.src = trackUrl(t);
-  audio.play().catch(() => {/* autoplay bloqueado -> usuário toca no play */});
   updateNowPlaying(t);
   document.getElementById("player").classList.remove("hidden");
   render();
+
+  const myToken = ++playToken;
+  try {
+    const src = await resolveSrc(t);
+    if (myToken !== playToken) return; // o usuário já pediu outra faixa
+    audio.src = src;
+    await audio.play().catch(() => {/* autoplay bloqueado -> toca no botão */});
+  } catch (e) {
+    if (myToken !== playToken) return;
+    document.getElementById("np-tags").textContent = "Não foi possível carregar o áudio.";
+  }
 }
 
 function updateNowPlaying(t) {
