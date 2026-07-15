@@ -43,6 +43,7 @@ function randomPassword(len = 10): string {
 // (Kiwify, Hotmart, Stripe, etc.). Adapte se sua plataforma usar outro campo.
 function extractEmail(p: any): string | null {
   const candidates = [
+    p?.client?.email,                          // Wiven
     p?.email,
     p?.customer?.email,
     p?.customer_email,
@@ -59,7 +60,7 @@ function extractEmail(p: any): string | null {
 
 function extractName(p: any): string {
   return (
-    p?.name ?? p?.customer?.name ?? p?.buyer?.name ??
+    p?.client?.name ?? p?.name ?? p?.customer?.name ?? p?.buyer?.name ??
     p?.data?.buyer?.name ?? p?.customer_name ?? "Cliente"
   );
 }
@@ -111,8 +112,11 @@ function classifyEvent(p: any): "grant" | "revoke" | "ignore" {
     p?.order_status, p?.payment_status,
   ].filter((v) => typeof v === "string").join(" ").toLowerCase();
 
-  if (/estorn|refund|reembols|charge.?back|\bmed\b|devolu|contestad/.test(raw)) return "revoke";
-  if (/\bpag[ao]\b|paid|approv|aprovad|complet|success|autoriz/.test(raw)) return "grant";
+  // Revogar: estorno / reembolso / chargeback / MED / disputa perdida.
+  // (Wiven usa nomes em inglês, ex.: TRANSACTION_REFUNDED, CHARGEBACK, MED_*)
+  if (/estorn|refund|reembols|charge.?back|devolu|disput|contest|(^|[^a-z])med([^a-z]|$)/.test(raw)) return "revoke";
+  // Liberar: pago / aprovado / concluído (Wiven: TRANSACTION_PAID / COMPLETED).
+  if (/paid|pag[ao]|approv|aprovad|complet|conclu|success|autoriz/.test(raw)) return "grant";
   return "ignore";
 }
 
