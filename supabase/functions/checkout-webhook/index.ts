@@ -98,6 +98,35 @@ async function sendEmail(to: string, name: string, password: string) {
   if (!res.ok) throw new Error("Brevo " + res.status + ": " + (await res.text()));
 }
 
+// Classifica o evento do webhook a partir de palavras-chave nos campos de
+// evento/status (robusto a formatos diferentes de plataforma).
+//   grant  -> liberar acesso (compra paga/aprovada)
+//   revoke -> remover acesso (estorno, reembolso, chargeback, MED)
+//   ignore -> não faz nada (ex.: transação criada/pendente)
+function classifyEvent(p: any): "grant" | "revoke" | "ignore" {
+  const raw = [
+    p?.event, p?.type, p?.status, p?.event_type, p?.current_status,
+    p?.transaction?.status, p?.transaction?.event,
+    p?.data?.status, p?.data?.event, p?.data?.transaction?.status,
+    p?.order_status, p?.payment_status,
+  ].filter((v) => typeof v === "string").join(" ").toLowerCase();
+
+  if (/estorn|refund|reembols|charge.?back|\bmed\b|devolu|contestad/.test(raw)) return "revoke";
+  if (/\bpag[ao]\b|paid|approv|aprovad|complet|success|autoriz/.test(raw)) return "grant";
+  return "ignore";
+}
+
+// Localiza o id de um usuário pelo e-mail (paginação do Admin API).
+async function findUserId(admin: any, email: string): Promise<string | null> {
+  for (let page = 1; page <= 20; page++) {
+    const { data } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    const found = data?.users?.find((u: any) => (u.email ?? "").toLowerCase() === email);
+    if (found) return found.id;
+    if (!data?.users || data.users.length < 200) break;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Método não permitido" }, 405);
@@ -126,16 +155,7 @@ Deno.serve(async (req) => {
   const name = extractName(payload);
   if (!email) return json({ error: "E-mail do comprador não encontrado no webhook", payloadRecebido: payload }, 400);
 
-  // ⚠️ FILTRO DE STATUS — libere acesso SÓ em compra aprovada.
-  // Ative depois de capturar o payload real da Wiven (troque CAMPO/VALOR):
-  //   const status = payload?.status ?? payload?.event ?? payload?.data?.status;
-  //   if (String(status).toLowerCase() !== "aprovado") {
-  //     return json({ ignored: true, motivo: "evento não é compra aprovada", status });
-  //   }
-  // Exemplos de outras plataformas:
-  //   Kiwify:  payload.order_status === "paid"
-  //   Hotmart: payload.data?.purchase?.status === "APPROVED"
-  //   Stripe:  payload.type === "checkout.session.completed"
+  const decision = classifyEvent(payload);
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
@@ -143,9 +163,29 @@ Deno.serve(async (req) => {
     { auth: { autoRefreshToken: false, persistSession: false } },
   );
 
+  // ---- REVOGAR ACESSO (estorno / reembolso / chargeback / MED) ----
+  // Apaga o usuário: ele deixa de conseguir logar. Se recomprar, o evento
+  // de compra paga recria o acesso automaticamente.
+  if (decision === "revoke") {
+    const userId = await findUserId(admin, email);
+    if (userId) {
+      const { error } = await admin.auth.admin.deleteUser(userId);
+      if (error) return json({ error: "Falha ao revogar acesso: " + error.message }, 500);
+    }
+    console.log("[checkout-webhook] acesso REVOGADO:", email);
+    return json({ ok: true, revoked: true, email });
+  }
+
+  // ---- IGNORAR (transação criada/pendente e outros eventos sem ação) ----
+  if (decision !== "grant") {
+    console.log("[checkout-webhook] evento ignorado para:", email);
+    return json({ ignored: true, motivo: "evento sem ação (não é compra paga nem revogação)" });
+  }
+
+  // ---- LIBERAR ACESSO (transação paga) ----
   const password = randomPassword();
 
-  // 3) cria o usuário (já confirmado, pode logar na hora)
+  // cria o usuário (já confirmado, pode logar na hora)
   const { error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
@@ -158,19 +198,13 @@ Deno.serve(async (req) => {
     const already = /registered|already|exists|duplicate/i.test(createErr.message);
     if (!already) return json({ error: "Falha ao criar usuário: " + createErr.message }, 500);
 
-    let userId: string | null = null;
-    for (let page = 1; page <= 20 && !userId; page++) {
-      const { data } = await admin.auth.admin.listUsers({ page, perPage: 200 });
-      const found = data?.users?.find((u) => (u.email ?? "").toLowerCase() === email);
-      if (found) userId = found.id;
-      if (!data?.users || data.users.length < 200) break;
-    }
+    const userId = await findUserId(admin, email);
     if (!userId) return json({ error: "Usuário existe mas não foi localizado" }, 500);
     const { error: updErr } = await admin.auth.admin.updateUserById(userId, { password });
     if (updErr) return json({ error: "Falha ao redefinir senha: " + updErr.message }, 500);
   }
 
-  // 4) envia o e-mail com as credenciais
+  // envia o e-mail com as credenciais
   try {
     await sendEmail(email, name, password);
   } catch (e) {
@@ -178,5 +212,6 @@ Deno.serve(async (req) => {
     return json({ error: "Usuário criado, mas o e-mail falhou: " + String(e) }, 502);
   }
 
+  console.log("[checkout-webhook] acesso LIBERADO:", email);
   return json({ ok: true, message: "Acesso liberado e e-mail enviado para " + email });
 });
