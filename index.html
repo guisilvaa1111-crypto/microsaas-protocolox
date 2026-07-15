@@ -35,20 +35,32 @@
       <form id="login-form" class="login__form" autocomplete="on">
         <label class="field">
           <span class="field__label">E-mail</span>
-          <input type="email" id="login-email" placeholder="seu@email.com" required />
+          <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required />
         </label>
         <label class="field">
           <span class="field__label">Senha</span>
-          <input type="password" id="login-password" placeholder="••••••••" required />
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required />
         </label>
         <button type="submit" class="btn btn--primary">Entrar</button>
         <p id="login-msg" class="login__msg"></p>
+        <button type="button" id="login-forgot" class="login__link">Esqueci minha senha</button>
+      </form>
+
+      <!-- Painel de redefinição de senha (aparece quando o usuário chega pelo link do e-mail) -->
+      <form id="recovery-form" class="login__form hidden">
+        <p class="login__note" style="margin-top:0">Defina sua nova senha:</p>
+        <label class="field">
+          <span class="field__label">Nova senha</span>
+          <input type="password" id="recovery-password" placeholder="mínimo 6 caracteres" autocomplete="new-password" minlength="6" required />
+        </label>
+        <button type="submit" class="btn btn--primary">Salvar nova senha</button>
+        <p id="recovery-msg" class="login__msg"></p>
       </form>
 
       <p class="login__hint">
         Ainda não tem acesso? <a href="#" id="login-buy">Adquira o Protocolo X</a>
       </p>
-      <p class="login__note">Demonstração — qualquer e-mail/senha entra. A autenticação real será conectada ao banco de dados.</p>
+      <p id="login-note" class="login__note">Digite o e-mail e a senha que você recebeu após a compra.</p>
     </div>
   </section>
 
@@ -126,6 +138,10 @@
 
     <audio id="audio" preload="metadata"></audio>
   </div>
+
+  <!-- Supabase (banco + autenticação). Fica antes do app.js. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>

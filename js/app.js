@@ -55,17 +55,47 @@ const AUTH_KEY = "protocolox_auth";
 let favorites = loadFavorites();
 
 /* ================================================================
-   LOGIN
+   LOGIN (Supabase Auth — com fallback em modo demonstração)
    ================================================================ */
-function initLogin() {
+let sb = null; // cliente Supabase
+
+// Só considera "configurado" quando os valores em supabase-config.js
+// foram realmente preenchidos (não são mais os de exemplo).
+function supabaseConfigured() {
+  return typeof supabase !== "undefined"
+    && typeof SUPABASE_URL === "string" && SUPABASE_URL.startsWith("https://")
+    && !SUPABASE_URL.includes("SEU-PROJETO")
+    && typeof SUPABASE_ANON_KEY === "string" && SUPABASE_ANON_KEY.length > 30
+    && !SUPABASE_ANON_KEY.includes("COLE_AQUI");
+}
+function getClient() {
+  if (!sb && supabaseConfigured()) {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  return sb;
+}
+
+async function initLogin() {
   document.getElementById("login-emblem").innerHTML = EMBLEM_SVG;
 
   const form = document.getElementById("login-form");
   const msg = document.getElementById("login-msg");
+  const client = getClient();
 
-  // Já autenticado nesta sessão/dispositivo? entra direto.
-  if (localStorage.getItem(AUTH_KEY)) {
-    enterApp();
+  if (client) {
+    // Chegou pelo link de redefinição de senha do e-mail?
+    if ((window.location.hash || "").includes("type=recovery")) showRecovery();
+    client.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") showRecovery();
+    });
+    // Já tem sessão ativa? entra direto.
+    const { data } = await client.auth.getSession();
+    if (data.session) enterApp();
+  } else {
+    // Modo demonstração (ainda sem Supabase configurado).
+    document.getElementById("login-note").textContent =
+      "Modo demonstração: qualquer e-mail/senha entra. Configure o Supabase para ativar o login real.";
+    if (localStorage.getItem(AUTH_KEY)) enterApp();
   }
 
   form.addEventListener("submit", (e) => {
@@ -77,34 +107,72 @@ function initLogin() {
     );
   });
 
+  document.getElementById("login-forgot").addEventListener("click", () => handleForgot(msg));
+  document.getElementById("recovery-form").addEventListener("submit", handleRecoverySubmit);
+
   document.getElementById("login-buy").addEventListener("click", (e) => {
     e.preventDefault();
+    // TODO: troque por window.location.href = "SUA_URL_DE_CHECKOUT";
     msg.textContent = "Em breve: página de compra do Protocolo X.";
   });
 }
 
-/*
- * handleLogin — AUTENTICAÇÃO (demonstração).
- * ------------------------------------------------------------------
- * Hoje: aceita qualquer e-mail/senha e libera o app.
- *
- * PARA CONECTAR A UM BANCO DE DADOS REAL no futuro, substitua o miolo
- * desta função por uma chamada de autenticação, por exemplo com Supabase:
- *
- *   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
- *   if (error) { msg.textContent = "E-mail ou senha inválidos."; return; }
- *   localStorage.setItem(AUTH_KEY, data.session.access_token);
- *   enterApp();
- *
- * Assim, quando a pessoa comprar o produto, você cria o usuário no banco
- * e envia o acesso por e-mail — e o login abaixo passa a validar de verdade.
- */
-function handleLogin(email, password, msg) {
+async function handleLogin(email, password, msg) {
   if (!email || !password) {
     msg.textContent = "Preencha e-mail e senha.";
     return;
   }
-  localStorage.setItem(AUTH_KEY, "demo:" + email);
+  const client = getClient();
+  const btn = document.querySelector('#login-form button[type="submit"]');
+
+  // Sem Supabase configurado -> modo demonstração.
+  if (!client) {
+    localStorage.setItem(AUTH_KEY, "demo:" + email);
+    enterApp();
+    return;
+  }
+
+  msg.textContent = "";
+  btn.disabled = true; btn.textContent = "Entrando…";
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = "Entrar";
+
+  if (error) {
+    msg.textContent = "E-mail ou senha incorretos. Confira o e-mail que você recebeu após a compra.";
+    return;
+  }
+  enterApp();
+}
+
+// "Esqueci minha senha" -> envia link de redefinição por e-mail.
+async function handleForgot(msg) {
+  const email = document.getElementById("login-email").value.trim();
+  const client = getClient();
+  if (!email) { msg.textContent = "Digite seu e-mail no campo acima e clique de novo."; return; }
+  if (!client) { msg.textContent = "A redefinição de senha fica disponível após configurar o Supabase."; return; }
+  const redirectTo = window.location.href.split("#")[0];
+  const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+  msg.textContent = error
+    ? "Não foi possível enviar agora. Tente novamente em instantes."
+    : "Enviamos um link de redefinição para o seu e-mail. 💜";
+}
+
+// Mostra o painel de "nova senha" (fluxo de recuperação).
+function showRecovery() {
+  document.getElementById("login-form").classList.add("hidden");
+  document.getElementById("recovery-form").classList.remove("hidden");
+}
+
+async function handleRecoverySubmit(e) {
+  e.preventDefault();
+  const client = getClient();
+  const msg = document.getElementById("recovery-msg");
+  const pass = document.getElementById("recovery-password").value;
+  if (!client) return;
+  if (!pass || pass.length < 6) { msg.textContent = "A senha precisa ter ao menos 6 caracteres."; return; }
+  const { error } = await client.auth.updateUser({ password: pass });
+  if (error) { msg.textContent = "Não foi possível salvar. O link pode ter expirado."; return; }
+  history.replaceState(null, "", window.location.pathname); // limpa o #hash
   enterApp();
 }
 
@@ -113,8 +181,10 @@ function enterApp() {
   document.getElementById("app").classList.remove("hidden");
 }
 
-function logout() {
-  localStorage.removeItem(AUTH_KEY);
+async function logout() {
+  const client = getClient();
+  if (client) { await client.auth.signOut(); }
+  else { localStorage.removeItem(AUTH_KEY); }
   audio.pause();
   location.reload();
 }

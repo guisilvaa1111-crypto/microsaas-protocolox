@@ -153,6 +153,12 @@ a { color: var(--gold-bright); text-decoration: none; }
 .btn--primary:hover { filter: brightness(1.06); }
 
 .login__msg { min-height: 1em; font-size: 0.82rem; color: var(--violet-glow); text-align: center; }
+.login__link {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-family: var(--font-body); font-size: 0.8rem;
+  text-decoration: underline; text-underline-offset: 3px; padding: 2px; margin: 0 auto;
+}
+.login__link:hover { color: var(--gold-bright); }
 .login__hint { margin-top: 20px; text-align: center; font-size: 0.86rem; color: var(--muted); }
 .login__note {
   margin-top: 14px; text-align: center; font-size: 0.68rem; color: var(--muted-2);
