@@ -47,17 +47,22 @@ protocolo x/
 
 ## ➕ Como adicionar novas músicas (rumo às 70+)
 
-1. Coloque o novo arquivo `.mp3` na pasta `audio/` (ex.: `audio/51-nome-da-faixa.mp3`).
-2. Abra [`js/data.js`](js/data.js) e adicione uma linha no array `TRACKS`:
+Lembre-se: os áudios ficam no **bucket privado do Supabase** (não no repositório). Então
+adicionar uma faixa tem 3 partes — o arquivo, o cadastro e o envio ao bucket:
 
-```js
-{ titulo: "Nome da Faixa", tags: ["Meditação", "Cura"], file: "51-nome-da-faixa.mp3" },
-```
+1. **Nomeie o arquivo** seguindo o padrão, ex.: `51-nome-da-faixa.mp3`, e coloque na pasta local `audio/`.
+2. **Cadastre no app**: abra [`js/data.js`](js/data.js) e adicione uma linha no array `TRACKS`:
+   ```js
+   { titulo: "Nome da Faixa", tags: ["Meditação", "Cura"], file: "51-nome-da-faixa.mp3" },
+   ```
+   > As tags precisam ter a mesma grafia da lista `TAG_ORDER`. Para criar uma **categoria nova**,
+   > adicione o nome dela também em `TAG_ORDER`.
+3. **Envie ao bucket**: dê 2 cliques em [`scripts/SUBIR-AUDIOS.bat`](scripts/SUBIR-AUDIOS.bat)
+   (envia todos, pulando/atualizando os que já existem) — ou arraste só o novo `.mp3`
+   no painel do Supabase → Storage → bucket `audios`.
+4. **Publique o cadastro**: faça commit e push do `js/data.js` (só ele; o `.mp3` não vai pro Git).
 
-> As tags precisam ter a mesma grafia da lista `TAG_ORDER` para os filtros funcionarem.
-
-Se um dia precisar **rebaixar todos os áudios** do Drive, rode:
-`powershell -ExecutionPolicy Bypass -File scripts\baixar-audios.ps1`
+Pronto — a nova faixa aparece no app. Passo a passo detalhado da proteção: [PROTEGER-AUDIOS.md](PROTEGER-AUDIOS.md).
 
 ---
 
