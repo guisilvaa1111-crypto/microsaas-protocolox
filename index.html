@@ -11,12 +11,13 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/favicon.svg" />
 
-  <!-- Fontes: Cinzel (títulos, no estilo da logo) + Poppins (corpo) -->
+  <!-- Fontes: Cinzel (títulos) + Poppins (corpo). Carregadas sem bloquear o render. -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;500;600&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;500;600&display=swap" /></noscript>
 
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=2" />
 </head>
 <body>
 
@@ -163,13 +164,11 @@
     <audio id="audio" preload="metadata"></audio>
   </div>
 
-  <!-- Supabase (banco + autenticação). Fica antes do app.js. -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-config.js"></script>
+  <!-- Supabase (banco + autenticação). defer = baixa em paralelo, não bloqueia. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="js/supabase-config.js?v=2"></script>
   <!-- PDF.js é carregado sob demanda (só ao visualizar um PDF) — ver js/app.js -->
-
-
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script defer src="js/data.js?v=2"></script>
+  <script defer src="js/app.js?v=2"></script>
 </body>
 </html>
