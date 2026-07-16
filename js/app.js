@@ -162,11 +162,12 @@ async function handleForgot(msg) {
   const client = getClient();
   if (!email) { msg.textContent = "Digite seu e-mail no campo acima e clique de novo."; return; }
   if (!client) { msg.textContent = "A redefinição de senha fica disponível após configurar o Supabase."; return; }
-  const redirectTo = window.location.href.split("#")[0];
-  const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
+  msg.textContent = "Enviando…";
+  // Chama a nossa função (e-mail em português via Brevo), no lugar do template padrão do Supabase.
+  const { error } = await client.functions.invoke("reset-senha", { body: { email } });
   msg.textContent = error
     ? "Não foi possível enviar agora. Tente novamente em instantes."
-    : "Enviamos um link de redefinição para o seu e-mail. 💜";
+    : "Se este e-mail tiver acesso, enviamos um link de redefinição. 💜";
 }
 
 // Mostra o painel de "nova senha" (fluxo de recuperação).
