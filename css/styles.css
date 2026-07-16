@@ -323,7 +323,11 @@ a { color: var(--gold-bright); text-decoration: none; }
   border: 1px solid rgba(217, 180, 95, 0.22);
   border-radius: var(--radius);
 }
-.bonus-card__emblem { flex: none; }
+.bonus-card__cover {
+  flex: none; width: 78px; height: 78px; border-radius: 12px; object-fit: cover;
+  border: 1px solid rgba(217, 180, 95, 0.3);
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.25);
+}
 .bonus-card__body { flex: 1; min-width: 0; }
 .bonus-card__tag {
   display: inline-block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;

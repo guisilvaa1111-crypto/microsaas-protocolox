@@ -374,7 +374,7 @@ function renderBonus() {
   const list = document.getElementById("bonus-list");
   list.innerHTML = BONUS.map((b, i) => `
     <li class="bonus-card">
-      <span class="bonus-card__emblem emblem emblem--sm"></span>
+      <img class="bonus-card__cover" src="${b.cover}" alt="${b.titulo}" />
       <div class="bonus-card__body">
         <span class="bonus-card__tag">${b.tag}</span>
         <div class="bonus-card__title">${b.titulo}</div>
@@ -385,7 +385,6 @@ function renderBonus() {
         </button>
       </div>
     </li>`).join("");
-  list.querySelectorAll(".bonus-card__emblem").forEach((el) => (el.innerHTML = EMBLEM_SVG));
   list.querySelectorAll(".bonus-card__dl").forEach((el) => {
     el.addEventListener("click", () => {
       const b = BONUS[Number(el.dataset.bonus)];
