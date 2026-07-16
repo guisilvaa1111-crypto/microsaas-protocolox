@@ -85,3 +85,34 @@ const TAG_ORDER = [
 
 // Atribui um id estável a cada faixa (usado por favoritos e player).
 TRACKS.forEach((t, i) => { t.id = i + 1; });
+
+/*
+ * BÔNUS — arquivos extras (guias/PDFs) liberados para quem tem acesso.
+ * Ficam no bucket privado "bonus" do Supabase Storage; o download só
+ * funciona para usuário logado (link assinado temporário).
+ *   file = nome do arquivo dentro do bucket
+ *   dl   = nome amigável com que o arquivo é baixado
+ */
+const BONUS = [
+  {
+    tag: "Bônus 1",
+    titulo: "Guia Prático Passo a Passo",
+    desc: "Manual completo: como usar as frequências corretamente, preparação do ambiente, rotina diária, tempo de uso e orientações para evitar erros.",
+    file: "guia-pratico-passo-a-passo.png",
+    dl: "Protocolo X - Guia Pratico Passo a Passo.png",
+  },
+  {
+    tag: "Bônus 2",
+    titulo: "A Oração do Sexto Sentido",
+    desc: "Manuscrito com exercícios e rituais para desenvolver a intuição, a percepção, a tomada de decisões e a identificação de oportunidades.",
+    file: "oracao-do-sexto-sentido.pdf",
+    dl: "Protocolo X - A Oracao do Sexto Sentido.pdf",
+  },
+  {
+    tag: "Bônus secreto",
+    titulo: "Oração de São Bento",
+    desc: "Oração de São Bento para a prosperidade — um presente especial do seu acesso.",
+    file: "oracao-de-sao-bento-prosperidade.pdf",
+    dl: "Protocolo X - Oracao de Sao Bento (Prosperidade).pdf",
+  },
+];

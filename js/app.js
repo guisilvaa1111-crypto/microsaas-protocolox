@@ -298,6 +298,9 @@ function render() {
           <div class="track__title">${t.titulo}</div>
           <div class="track__tags">${tagsHtml}</div>
         </div>
+        <button class="dl-btn" data-dl="${t.id}" aria-label="Baixar faixa">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
         <button class="fav-btn${isFav ? " active" : ""}" data-fav="${t.id}" aria-label="Favoritar">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2 5 5.3 5c2 0 3.4 1.2 4.7 2.8C11.3 6.2 12.7 5 14.7 5 18 5 19.6 8.4 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
         </button>
@@ -307,7 +310,7 @@ function render() {
   // clique na faixa -> tocar
   list.querySelectorAll(".track").forEach((el) => {
     el.addEventListener("click", (e) => {
-      if (e.target.closest(".fav-btn")) return;
+      if (e.target.closest(".fav-btn") || e.target.closest(".dl-btn")) return;
       playTrack(Number(el.dataset.id));
     });
   });
@@ -319,6 +322,84 @@ function render() {
       render();
     });
   });
+  // baixar faixa
+  list.querySelectorAll(".dl-btn").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const t = trackById(Number(el.dataset.dl));
+      if (t) downloadFromBucket(AUDIO_BUCKET, t.file, "Protocolo X - " + t.titulo + ".mp3", null);
+    });
+  });
+}
+
+/* ================================================================
+   BÔNUS + DOWNLOADS
+   ================================================================ */
+const BONUS_BUCKET = "bonus";
+
+// Dispara o download de uma URL como arquivo.
+function triggerDownload(url, filename) {
+  const a = document.createElement("a");
+  a.href = url;
+  if (filename) a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// Baixa um arquivo de um bucket privado (link assinado que força download).
+// Sem Supabase (modo demonstração), usa o arquivo local para testes.
+async function downloadFromBucket(bucket, path, filename, btn) {
+  const client = getClient();
+  const originalHtml = btn ? btn.innerHTML : null;
+  if (btn) { btn.disabled = true; btn.textContent = "Baixando…"; }
+  try {
+    if (!client) {
+      triggerDownload((bucket === BONUS_BUCKET ? "bonus/" : "audio/") + path, filename);
+    } else {
+      const { data, error } = await client.storage
+        .from(bucket)
+        .createSignedUrl(path, 120, { download: filename });
+      if (error || !data) throw new Error(error ? error.message : "sem URL assinada");
+      triggerDownload(data.signedUrl, filename);
+    }
+  } catch (e) {
+    alert("Não foi possível baixar agora. Tente novamente em instantes.");
+  } finally {
+    if (btn && originalHtml !== null) { btn.disabled = false; btn.innerHTML = originalHtml; }
+  }
+}
+
+function renderBonus() {
+  const list = document.getElementById("bonus-list");
+  list.innerHTML = BONUS.map((b, i) => `
+    <li class="bonus-card">
+      <span class="bonus-card__emblem emblem emblem--sm"></span>
+      <div class="bonus-card__body">
+        <span class="bonus-card__tag">${b.tag}</span>
+        <div class="bonus-card__title">${b.titulo}</div>
+        <div class="bonus-card__desc">${b.desc}</div>
+        <button class="bonus-card__dl" data-bonus="${i}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar
+        </button>
+      </div>
+    </li>`).join("");
+  list.querySelectorAll(".bonus-card__emblem").forEach((el) => (el.innerHTML = EMBLEM_SVG));
+  list.querySelectorAll(".bonus-card__dl").forEach((el) => {
+    el.addEventListener("click", () => {
+      const b = BONUS[Number(el.dataset.bonus)];
+      downloadFromBucket(BONUS_BUCKET, b.file, b.dl, el);
+    });
+  });
+}
+
+function switchView(view) {
+  const musicas = view === "musicas";
+  document.getElementById("view-musicas").classList.toggle("hidden", !musicas);
+  document.getElementById("view-bonus").classList.toggle("hidden", musicas);
+  document.getElementById("tab-musicas").classList.toggle("active", musicas);
+  document.getElementById("tab-bonus").classList.toggle("active", !musicas);
 }
 
 /* ================================================================
@@ -483,7 +564,12 @@ function init() {
   });
   document.getElementById("logout-btn").addEventListener("click", logout);
 
+  // Abas Músicas / Bônus
+  document.getElementById("tab-musicas").addEventListener("click", () => switchView("musicas"));
+  document.getElementById("tab-bonus").addEventListener("click", () => switchView("bonus"));
+
   render();
+  renderBonus();
 }
 
 document.addEventListener("DOMContentLoaded", init);

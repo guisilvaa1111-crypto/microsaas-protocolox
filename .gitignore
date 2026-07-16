@@ -22,3 +22,6 @@ dist/
 # Áudios: NÃO versionar (ficam protegidos no Supabase Storage, bucket privado).
 # Os arquivos continuam localmente na sua máquina para você subir ao bucket.
 audio/
+
+# Bônus (guias/PDFs): mesma lógica dos áudios — bucket privado "bonus".
+bonus/

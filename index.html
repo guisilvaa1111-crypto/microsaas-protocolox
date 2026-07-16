@@ -79,22 +79,37 @@
     </header>
 
     <main class="main">
-      <!-- Busca -->
-      <div class="search">
-        <svg class="search__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="search" id="search-input" placeholder="Buscar por nome ou tag…" autocomplete="off" />
+      <!-- Abas: Músicas / Bônus -->
+      <div class="tabs" role="tablist" aria-label="Seções">
+        <button id="tab-musicas" class="tab active" role="tab">🎵 Músicas</button>
+        <button id="tab-bonus" class="tab" role="tab">✨ Bônus</button>
       </div>
 
-      <!-- Filtros por tag -->
-      <div id="tag-filters" class="chips" role="tablist" aria-label="Filtrar por categoria"></div>
+      <!-- ---------- VISTA: MÚSICAS ---------- -->
+      <section id="view-musicas">
+        <!-- Busca -->
+        <div class="search">
+          <svg class="search__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="search" id="search-input" placeholder="Buscar por nome ou tag…" autocomplete="off" />
+        </div>
 
-      <!-- Contagem -->
-      <p id="track-count" class="count"></p>
+        <!-- Filtros por tag -->
+        <div id="tag-filters" class="chips" role="tablist" aria-label="Filtrar por categoria"></div>
 
-      <!-- Lista de faixas -->
-      <ul id="track-list" class="tracks"></ul>
+        <!-- Contagem -->
+        <p id="track-count" class="count"></p>
 
-      <p id="empty-state" class="empty hidden">Nenhuma faixa encontrada com esse filtro.</p>
+        <!-- Lista de faixas -->
+        <ul id="track-list" class="tracks"></ul>
+
+        <p id="empty-state" class="empty hidden">Nenhuma faixa encontrada com esse filtro.</p>
+      </section>
+
+      <!-- ---------- VISTA: BÔNUS ---------- -->
+      <section id="view-bonus" class="hidden">
+        <p class="bonus-intro">Bônus exclusivos do seu acesso. Toque para baixar. 🎁</p>
+        <ul id="bonus-list" class="bonus"></ul>
+      </section>
     </main>
 
     <!-- ===================== PLAYER FIXO ===================== -->
