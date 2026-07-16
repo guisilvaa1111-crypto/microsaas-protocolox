@@ -379,10 +379,16 @@ function renderBonus() {
         <span class="bonus-card__tag">${b.tag}</span>
         <div class="bonus-card__title">${b.titulo}</div>
         <div class="bonus-card__desc">${b.desc}</div>
-        <button class="bonus-card__dl" data-bonus="${i}">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Baixar
-        </button>
+        <div class="bonus-card__actions">
+          <button class="bonus-card__view" data-view="${i}">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver
+          </button>
+          <button class="bonus-card__dl" data-bonus="${i}">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar
+          </button>
+        </div>
       </div>
     </li>`).join("");
   list.querySelectorAll(".bonus-card__dl").forEach((el) => {
@@ -391,6 +397,46 @@ function renderBonus() {
       downloadFromBucket(BONUS_BUCKET, b.file, b.dl, el);
     });
   });
+  list.querySelectorAll(".bonus-card__view").forEach((el) => {
+    el.addEventListener("click", () => previewBonus(Number(el.dataset.view), el));
+  });
+}
+
+// Abre a visualização do bônus no navegador (imagem ou PDF), sem baixar.
+async function previewBonus(i, btn) {
+  const b = BONUS[i];
+  const client = getClient();
+  const originalHtml = btn ? btn.innerHTML : null;
+  if (btn) { btn.disabled = true; btn.textContent = "Abrindo…"; }
+  let url;
+  try {
+    if (!client) {
+      url = "bonus/" + b.file;
+    } else {
+      const { data, error } = await client.storage.from(BONUS_BUCKET).createSignedUrl(b.file, 600);
+      if (error || !data) throw new Error(error ? error.message : "sem URL");
+      url = data.signedUrl;
+    }
+  } catch (e) {
+    alert("Não foi possível abrir a visualização agora. Tente novamente em instantes.");
+    return;
+  } finally {
+    if (btn && originalHtml !== null) { btn.disabled = false; btn.innerHTML = originalHtml; }
+  }
+
+  const isPdf = /\.pdf$/i.test(b.file);
+  const content = document.getElementById("preview-content");
+  content.innerHTML = isPdf
+    ? `<iframe src="${url}" title="${b.titulo}"></iframe>`
+    : `<img src="${url}" alt="${b.titulo}" />`;
+  document.getElementById("preview-title").textContent = b.titulo;
+  document.getElementById("preview-open").href = url;
+  document.getElementById("preview-modal").classList.remove("hidden");
+}
+
+function closePreview() {
+  document.getElementById("preview-modal").classList.add("hidden");
+  document.getElementById("preview-content").innerHTML = "";
 }
 
 function switchView(view) {
@@ -566,6 +612,12 @@ function init() {
   // Abas Músicas / Bônus
   document.getElementById("tab-musicas").addEventListener("click", () => switchView("musicas"));
   document.getElementById("tab-bonus").addEventListener("click", () => switchView("bonus"));
+
+  // Modal de visualização (fechar no X ou clicando no fundo)
+  document.getElementById("preview-close").addEventListener("click", closePreview);
+  document.getElementById("preview-modal").addEventListener("click", (e) => {
+    if (e.target.id === "preview-modal") closePreview();
+  });
 
   render();
   renderBonus();

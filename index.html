@@ -112,6 +112,18 @@
       </section>
     </main>
 
+    <!-- ===================== MODAL DE VISUALIZAÇÃO (bônus) ===================== -->
+    <div id="preview-modal" class="modal hidden" aria-label="Visualização do bônus">
+      <div class="modal__bar">
+        <span id="preview-title" class="modal__title"></span>
+        <a id="preview-open" href="#" target="_blank" rel="noopener" class="modal__open">Abrir em nova aba</a>
+        <button id="preview-close" class="modal__close" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="preview-content" class="modal__content"></div>
+    </div>
+
     <!-- ===================== PLAYER FIXO ===================== -->
     <footer id="player" class="player hidden" aria-label="Player">
       <div class="player__progress">
