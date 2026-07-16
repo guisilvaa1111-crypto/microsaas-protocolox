@@ -71,7 +71,14 @@ function supabaseConfigured() {
 }
 function getClient() {
   if (!sb && supabaseConfigured()) {
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,     // salva a sessão no navegador (localStorage)
+        autoRefreshToken: true,   // renova o token sozinho -> não desloga toda hora
+        detectSessionInUrl: true, // processa o link de recuperação de senha
+        storage: window.localStorage,
+      },
+    });
   }
   return sb;
 }
@@ -172,14 +179,31 @@ async function handleRecoverySubmit(e) {
   e.preventDefault();
   const client = getClient();
   const msg = document.getElementById("recovery-msg");
+  const btn = e.target.querySelector('button[type="submit"]');
   const pass = document.getElementById("recovery-password").value;
   if (!client) return;
   if (!pass || pass.length < 6) { msg.textContent = "A senha precisa ter ao menos 6 caracteres."; return; }
+
+  msg.textContent = "";
+  btn.disabled = true; btn.textContent = "Salvando…";
+
+  // Garante que a sessão de recuperação (vinda do link do e-mail) está ativa.
+  const { data: sess } = await client.auth.getSession();
+  if (!sess.session) {
+    btn.disabled = false; btn.textContent = "Salvar nova senha";
+    msg.textContent = "Link inválido ou expirado. Peça um novo em \"Esqueci minha senha\".";
+    return;
+  }
+
+  // Grava de fato a nova senha escolhida no banco.
   const { error } = await client.auth.updateUser({ password: pass });
-  if (error) { msg.textContent = "Não foi possível salvar. O link pode ter expirado."; return; }
-  history.replaceState(null, "", window.location.pathname); // limpa o #hash
-  recoveryMode = false; // libera a entrada agora que a nova senha foi salva
-  enterApp();
+  btn.disabled = false; btn.textContent = "Salvar nova senha";
+  if (error) { msg.textContent = "Não foi possível salvar: " + error.message; return; }
+
+  msg.textContent = "Senha alterada com sucesso! Entrando…";
+  recoveryMode = false;                                       // libera a entrada
+  history.replaceState(null, "", window.location.pathname);   // limpa o #hash
+  setTimeout(enterApp, 900);
 }
 
 function enterApp() {
