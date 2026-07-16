@@ -58,6 +58,7 @@ let favorites = loadFavorites();
    LOGIN (Supabase Auth — com fallback em modo demonstração)
    ================================================================ */
 let sb = null; // cliente Supabase
+let recoveryMode = false; // true enquanto o usuário está redefinindo a senha
 
 // Só considera "configurado" quando os valores em supabase-config.js
 // foram realmente preenchidos (não são mais os de exemplo).
@@ -80,17 +81,27 @@ async function initLogin() {
 
   const form = document.getElementById("login-form");
   const msg = document.getElementById("login-msg");
+
+  // Captura o marcador de recuperação ANTES de criar o cliente
+  // (o supabase-js limpa o #hash da URL logo depois de processá-lo).
+  const isRecovery = (window.location.hash || "").includes("type=recovery");
+
   const client = getClient();
 
   if (client) {
-    // Chegou pelo link de redefinição de senha do e-mail?
-    if ((window.location.hash || "").includes("type=recovery")) showRecovery();
     client.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") showRecovery();
+      if (event === "PASSWORD_RECOVERY") { recoveryMode = true; showRecovery(); }
     });
-    // Já tem sessão ativa? entra direto.
-    const { data } = await client.auth.getSession();
-    if (data.session) enterApp();
+
+    if (isRecovery) {
+      // Veio do link de redefinição: NÃO entra no app — mostra o campo "nova senha".
+      recoveryMode = true;
+      showRecovery();
+    } else {
+      // Fluxo normal: se já existe sessão ativa, entra direto.
+      const { data } = await client.auth.getSession();
+      if (data.session) enterApp();
+    }
   } else {
     // Modo demonstração (ainda sem Supabase configurado).
     document.getElementById("login-note").textContent =
@@ -167,10 +178,12 @@ async function handleRecoverySubmit(e) {
   const { error } = await client.auth.updateUser({ password: pass });
   if (error) { msg.textContent = "Não foi possível salvar. O link pode ter expirado."; return; }
   history.replaceState(null, "", window.location.pathname); // limpa o #hash
+  recoveryMode = false; // libera a entrada agora que a nova senha foi salva
   enterApp();
 }
 
 function enterApp() {
+  if (recoveryMode) return; // durante a redefinição, só entra depois de salvar a nova senha
   document.getElementById("login-screen").classList.add("hidden");
   document.getElementById("app").classList.remove("hidden");
 }
