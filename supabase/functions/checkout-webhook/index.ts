@@ -72,12 +72,12 @@ async function sendEmail(to: string, name: string, password: string) {
       <h1 style="color:#f2d98b;letter-spacing:2px;text-align:center;margin:0 0 4px">PROTOCOLO <span style="color:#c4b5fd">X</span></h1>
       <p style="text-align:center;color:#9a93c4;margin:0 0 24px;font-size:13px">Seu acesso foi liberado 👁️</p>
       <p>Olá, ${name}! Sua compra foi confirmada. Aqui estão seus dados de acesso:</p>
-      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(217,180,95,.3);border-radius:12px;padding:16px;margin:16px 0">
+      <div style="background-color:#171235;border:1px solid #c9a24a;border-radius:12px;padding:16px;margin:16px 0">
         <p style="margin:0 0 8px"><b>E-mail:</b> ${to}</p>
         <p style="margin:0"><b>Senha:</b> <code style="font-size:16px;color:#f2d98b">${password}</code></p>
       </div>
       <p style="text-align:center;margin:24px 0">
-        <a href="${appUrl}" style="background:linear-gradient(135deg,#f2d98b,#d9b45f);color:#1a1330;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:10px;display:inline-block">Acessar o Protocolo X</a>
+        <a href="${appUrl}" style="background-color:#e8c874;color:#1a1330;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:10px;display:inline-block">Acessar o Protocolo X</a>
       </p>
       <p style="color:#9a93c4;font-size:12px">Recomendamos trocar sua senha depois de entrar, em "Esqueci minha senha". Guarde este e-mail.</p>
     </div>`;

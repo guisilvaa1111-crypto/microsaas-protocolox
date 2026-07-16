@@ -41,7 +41,7 @@ async function sendEmail(to: string, link: string) {
       <p>Olá! Recebemos um pedido para redefinir a senha do seu acesso ao Protocolo X.</p>
       <p>Clique no botão abaixo para escolher uma nova senha:</p>
       <p style="text-align:center;margin:24px 0">
-        <a href="${link}" style="background:linear-gradient(135deg,#f2d98b,#d9b45f);color:#1a1330;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:10px;display:inline-block">Redefinir minha senha</a>
+        <a href="${link}" style="background-color:#e8c874;color:#1a1330;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:10px;display:inline-block">Redefinir minha senha</a>
       </p>
       <p style="color:#9a93c4;font-size:12px">Se você não solicitou isso, pode ignorar este e-mail com segurança. O link expira em pouco tempo.</p>
     </div>`;
