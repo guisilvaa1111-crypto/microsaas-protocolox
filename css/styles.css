@@ -388,8 +388,12 @@ a { color: var(--gold-bright); text-decoration: none; }
 /* PDF renderizado inline (PDF.js) */
 .pdf-pages { width: 100%; max-width: 900px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .pdf-page {
-  width: 100%; display: block; background: #fff; border-radius: 6px;
+  width: 100%; height: auto; display: block; background: #fff; border-radius: 6px;
   box-shadow: 0 3px 14px rgba(0, 0, 0, 0.45);
+}
+.pdf-page-holder {
+  width: 100%; display: block; background: #14122b; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 .pdf-msg { color: var(--muted); padding: 40px 20px; text-align: center; font-size: 0.9rem; }
 

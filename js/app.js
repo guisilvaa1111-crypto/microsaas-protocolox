@@ -464,7 +464,7 @@ async function renderPdf(url, content) {
   try { lib = await loadPdfJs(); } catch (e) { lib = null; }
   if (myToken !== pdfToken) return;
   if (!lib) { content.innerHTML = '<div class="pdf-msg">Não foi possível carregar o leitor de PDF.</div>'; return; }
-  lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  lib.GlobalWorkerOptions.workerSrc = "js/pdf.worker.min.js"; // mesmo domínio => worker real (rápido)
 
   let pdf;
   try {
@@ -480,39 +480,66 @@ async function renderPdf(url, content) {
   wrap.className = "pdf-pages";
   content.appendChild(wrap);
 
-  const targetW = Math.min((content.clientWidth || 360) - 24, 900);
-  const canvases = [];
+  // Nitidez: renderiza na resolução real da tela (retina), com teto de 2x.
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cssW = Math.min((content.clientWidth || 360) - 24, 900);
+
+  // Descobre a proporção da 1ª página para dar altura aos placeholders
+  // (assim só as páginas realmente visíveis são renderizadas).
+  let ratio = 1.414;
+  try {
+    const p1 = await pdf.getPage(1);
+    const v = p1.getViewport({ scale: 1 });
+    ratio = v.height / v.width;
+  } catch (e) { /* usa padrão */ }
+  if (myToken !== pdfToken) return;
+
+  const holders = [];
   for (let n = 1; n <= pdf.numPages; n++) {
-    const c = document.createElement("canvas");
-    c.className = "pdf-page";
-    c.dataset.page = String(n);
-    c.style.aspectRatio = "1 / 1.414"; // altura provisória até renderizar
-    wrap.appendChild(c);
-    canvases.push(c);
+    const h = document.createElement("div");
+    h.className = "pdf-page-holder";
+    h.style.aspectRatio = `1 / ${ratio.toFixed(3)}`;
+    h.dataset.page = String(n);
+    wrap.appendChild(h);
+    holders.push(h);
   }
 
-  const rendered = new Set();
-  const io = new IntersectionObserver(async (entries) => {
-    for (const en of entries) {
-      if (!en.isIntersecting) continue;
-      const c = en.target;
-      const n = Number(c.dataset.page);
-      if (rendered.has(n)) continue;
-      rendered.add(n);
-      io.unobserve(c);
-      try {
-        const page = await pdf.getPage(n);
-        if (myToken !== pdfToken) return;
-        const base = page.getViewport({ scale: 1 });
-        const vp = page.getViewport({ scale: targetW / base.width });
-        c.width = vp.width; c.height = vp.height;
-        c.style.aspectRatio = "";
-        await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
-      } catch (e) { /* ignora falha de página isolada */ }
-    }
-  }, { root: content, rootMargin: "600px" });
+  const done = new Set();
+  const holderByPage = new Map(holders.map((h) => [Number(h.dataset.page), h]));
+  async function renderPage(n) {
+    const holder = holderByPage.get(n);
+    if (!holder || done.has(n)) return;
+    done.add(n);
+    try {
+      const page = await pdf.getPage(n);
+      if (myToken !== pdfToken) return;
+      const scale = (cssW * dpr) / page.getViewport({ scale: 1 }).width;
+      const vp = page.getViewport({ scale });
+      const canvas = document.createElement("canvas");
+      canvas.className = "pdf-page";
+      canvas.dataset.page = String(n);
+      canvas.width = vp.width;
+      canvas.height = vp.height;
+      await page.render({ canvasContext: canvas.getContext("2d", { alpha: false }), viewport: vp }).promise;
+      if (myToken !== pdfToken) return;
+      holder.replaceWith(canvas);
+    } catch (e) { done.delete(n); /* deixa tentar de novo */ }
+  }
 
-  canvases.forEach((c) => io.observe(c));
+  // Renderiza já as primeiras páginas (aparecem na hora, sem esperar scroll).
+  const EAGER = Math.min(4, pdf.numPages);
+  for (let n = 1; n <= EAGER; n++) renderPage(n);
+
+  // Resto sob demanda ao rolar (economiza memória e tempo em PDFs grandes).
+  const io = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (en.isIntersecting) { io.unobserve(en.target); renderPage(Number(en.target.dataset.page)); }
+    }
+  }, { root: content, rootMargin: "1000px 0px" });
+  requestAnimationFrame(() => {
+    if (myToken !== pdfToken) return;
+    holders.forEach((h) => { if (!done.has(Number(h.dataset.page))) io.observe(h); });
+  });
 }
 
 function closePreview() {
