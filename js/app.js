@@ -437,7 +437,22 @@ async function previewBonus(i, btn) {
   }
 }
 
-let pdfToken = 0; // cancela renderização anterior se abrir outro/fechar
+let pdfToken = 0;      // cancela renderização anterior se abrir outro/fechar
+let pdfjsLoading = null; // carrega o PDF.js só na 1ª vez que alguém abre um PDF
+
+// Carrega o PDF.js sob demanda (não pesa no carregamento inicial do app).
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfjsLoading) return pdfjsLoading;
+  pdfjsLoading = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload = () => resolve(window.pdfjsLib);
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  return pdfjsLoading;
+}
 
 // Renderiza um PDF DENTRO do modal, página por página, carregando sob demanda
 // (funciona com PDFs grandes e em qualquer navegador — usa PDF.js).
@@ -445,7 +460,9 @@ async function renderPdf(url, content) {
   const myToken = ++pdfToken;
   content.innerHTML = '<div class="pdf-msg">Carregando…</div>';
 
-  const lib = window.pdfjsLib;
+  let lib;
+  try { lib = await loadPdfJs(); } catch (e) { lib = null; }
+  if (myToken !== pdfToken) return;
   if (!lib) { content.innerHTML = '<div class="pdf-msg">Não foi possível carregar o leitor de PDF.</div>'; return; }
   lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
