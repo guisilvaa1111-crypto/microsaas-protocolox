@@ -402,19 +402,11 @@ function renderBonus() {
   });
 }
 
-// Abre a visualização do bônus no navegador (imagem ou PDF), sem baixar.
-//   PDF   -> abre direto em nova aba (o navegador exibe o PDF nativamente)
-//   Imagem-> mostra no modal dentro do app
+// Abre a visualização do bônus no modal (imagem ou PDF), sem baixar nem sair do app.
 async function previewBonus(i, btn) {
   const b = BONUS[i];
   const client = getClient();
   const isPdf = /\.pdf$/i.test(b.file);
-
-  // Para PDF: abre a aba JÁ no clique (evita bloqueio de pop-up) e depois
-  // aponta ela para o link. Assim não há passo extra para ver o PDF.
-  let pdfWin = null;
-  if (isPdf) pdfWin = window.open("", "_blank");
-
   const originalHtml = btn ? btn.innerHTML : null;
   if (btn) { btn.disabled = true; btn.textContent = "Abrindo…"; }
   let url;
@@ -427,28 +419,87 @@ async function previewBonus(i, btn) {
       url = data.signedUrl;
     }
   } catch (e) {
-    if (pdfWin) pdfWin.close();
     alert("Não foi possível abrir a visualização agora. Tente novamente em instantes.");
     return;
   } finally {
     if (btn && originalHtml !== null) { btn.disabled = false; btn.innerHTML = originalHtml; }
   }
 
-  if (isPdf) {
-    if (pdfWin) pdfWin.location = url;   // exibe o PDF direto na nova aba
-    else window.open(url, "_blank");      // fallback se o pop-up foi bloqueado
-    return;
-  }
-
-  // Imagem: exibe no modal dentro do app.
-  const content = document.getElementById("preview-content");
-  content.innerHTML = `<img src="${url}" alt="${b.titulo}" />`;
   document.getElementById("preview-title").textContent = b.titulo;
   document.getElementById("preview-open").href = url;
   document.getElementById("preview-modal").classList.remove("hidden");
+
+  const content = document.getElementById("preview-content");
+  if (isPdf) {
+    renderPdf(url, content);
+  } else {
+    content.innerHTML = `<img src="${url}" alt="${b.titulo}" />`;
+  }
+}
+
+let pdfToken = 0; // cancela renderização anterior se abrir outro/fechar
+
+// Renderiza um PDF DENTRO do modal, página por página, carregando sob demanda
+// (funciona com PDFs grandes e em qualquer navegador — usa PDF.js).
+async function renderPdf(url, content) {
+  const myToken = ++pdfToken;
+  content.innerHTML = '<div class="pdf-msg">Carregando…</div>';
+
+  const lib = window.pdfjsLib;
+  if (!lib) { content.innerHTML = '<div class="pdf-msg">Não foi possível carregar o leitor de PDF.</div>'; return; }
+  lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+  let pdf;
+  try {
+    pdf = await lib.getDocument({ url }).promise;
+  } catch (e) {
+    content.innerHTML = '<div class="pdf-msg">Não foi possível exibir o PDF. Você pode baixá-lo pelo botão "Baixar".</div>';
+    return;
+  }
+  if (myToken !== pdfToken) return; // fechou/trocou enquanto carregava
+
+  content.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "pdf-pages";
+  content.appendChild(wrap);
+
+  const targetW = Math.min((content.clientWidth || 360) - 24, 900);
+  const canvases = [];
+  for (let n = 1; n <= pdf.numPages; n++) {
+    const c = document.createElement("canvas");
+    c.className = "pdf-page";
+    c.dataset.page = String(n);
+    c.style.aspectRatio = "1 / 1.414"; // altura provisória até renderizar
+    wrap.appendChild(c);
+    canvases.push(c);
+  }
+
+  const rendered = new Set();
+  const io = new IntersectionObserver(async (entries) => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      const c = en.target;
+      const n = Number(c.dataset.page);
+      if (rendered.has(n)) continue;
+      rendered.add(n);
+      io.unobserve(c);
+      try {
+        const page = await pdf.getPage(n);
+        if (myToken !== pdfToken) return;
+        const base = page.getViewport({ scale: 1 });
+        const vp = page.getViewport({ scale: targetW / base.width });
+        c.width = vp.width; c.height = vp.height;
+        c.style.aspectRatio = "";
+        await page.render({ canvasContext: c.getContext("2d"), viewport: vp }).promise;
+      } catch (e) { /* ignora falha de página isolada */ }
+    }
+  }, { root: content, rootMargin: "600px" });
+
+  canvases.forEach((c) => io.observe(c));
 }
 
 function closePreview() {
+  pdfToken++; // cancela qualquer renderização de PDF em andamento
   document.getElementById("preview-modal").classList.add("hidden");
   document.getElementById("preview-content").innerHTML = "";
 }
