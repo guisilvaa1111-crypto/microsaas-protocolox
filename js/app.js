@@ -403,9 +403,18 @@ function renderBonus() {
 }
 
 // Abre a visualização do bônus no navegador (imagem ou PDF), sem baixar.
+//   PDF   -> abre direto em nova aba (o navegador exibe o PDF nativamente)
+//   Imagem-> mostra no modal dentro do app
 async function previewBonus(i, btn) {
   const b = BONUS[i];
   const client = getClient();
+  const isPdf = /\.pdf$/i.test(b.file);
+
+  // Para PDF: abre a aba JÁ no clique (evita bloqueio de pop-up) e depois
+  // aponta ela para o link. Assim não há passo extra para ver o PDF.
+  let pdfWin = null;
+  if (isPdf) pdfWin = window.open("", "_blank");
+
   const originalHtml = btn ? btn.innerHTML : null;
   if (btn) { btn.disabled = true; btn.textContent = "Abrindo…"; }
   let url;
@@ -418,17 +427,22 @@ async function previewBonus(i, btn) {
       url = data.signedUrl;
     }
   } catch (e) {
+    if (pdfWin) pdfWin.close();
     alert("Não foi possível abrir a visualização agora. Tente novamente em instantes.");
     return;
   } finally {
     if (btn && originalHtml !== null) { btn.disabled = false; btn.innerHTML = originalHtml; }
   }
 
-  const isPdf = /\.pdf$/i.test(b.file);
+  if (isPdf) {
+    if (pdfWin) pdfWin.location = url;   // exibe o PDF direto na nova aba
+    else window.open(url, "_blank");      // fallback se o pop-up foi bloqueado
+    return;
+  }
+
+  // Imagem: exibe no modal dentro do app.
   const content = document.getElementById("preview-content");
-  content.innerHTML = isPdf
-    ? `<iframe src="${url}" title="${b.titulo}"></iframe>`
-    : `<img src="${url}" alt="${b.titulo}" />`;
+  content.innerHTML = `<img src="${url}" alt="${b.titulo}" />`;
   document.getElementById("preview-title").textContent = b.titulo;
   document.getElementById("preview-open").href = url;
   document.getElementById("preview-modal").classList.remove("hidden");
