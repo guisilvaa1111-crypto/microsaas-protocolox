@@ -109,12 +109,6 @@ async function initLogin() {
 
   document.getElementById("login-forgot").addEventListener("click", () => handleForgot(msg));
   document.getElementById("recovery-form").addEventListener("submit", handleRecoverySubmit);
-
-  document.getElementById("login-buy").addEventListener("click", (e) => {
-    e.preventDefault();
-    // TODO: troque por window.location.href = "SUA_URL_DE_CHECKOUT";
-    msg.textContent = "Em breve: página de compra do Protocolo X.";
-  });
 }
 
 async function handleLogin(email, password, msg) {
