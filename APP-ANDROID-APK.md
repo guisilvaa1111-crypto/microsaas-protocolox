@@ -88,9 +88,60 @@ sem Mac e sem risco de reprovação.
 
 ---
 
+---
+
+# 📊 Compatibilidade e problemas de instalação
+
+## Em quais Androids o APK funciona?
+O APK é uma **TWA**, que usa o Chrome por baixo (precisa de **Chrome 72+**, de 2019).
+
+| Versão | Funciona? |
+|---|---|
+| **Android 5.0+** (2014 em diante) | ✅ Sim — **~99% dos aparelhos em uso** |
+| Android 4.x (2013 e antes) | ⚠️ Provavelmente não |
+| Celular sem Chrome (alguns Huawei) | ⚠️ Pode falhar |
+
+> **Rede de segurança:** quem não conseguir instalar o APK pode sempre usar o
+> **"Instalar aplicativo" pelo navegador** (Opção A lá em cima) — funciona em praticamente
+> qualquer celular. Vale deixar essa alternativa no seu e-mail/suporte.
+
+## "App não instalado" / erros — as causas REAIS
+Quase nunca é a versão do Android. Na ordem de frequência:
+
+1. **Já existe uma versão antiga instalada com outra chave de assinatura**
+   → Peça para **desinstalar** o app antigo antes de instalar o novo. (É por isso que você deve
+   sempre usar o **mesmo `signing.keystore`** nas atualizações.)
+
+2. **"Instalar apps desconhecidos" bloqueado**
+   → No aviso que aparece, tocar em **Configurações** → permitir para o app que está abrindo o
+   arquivo (Arquivos, Chrome, Drive…).
+
+3. **Play Protect avisa "app não reconhecido"**
+   → Normal em APK fora da Play Store. Tocar em **"Instalar mesmo assim"**.
+   (Some se você publicar na Play Store.)
+
+4. **Arquivo corrompido no envio** ⚠️ *(erro silencioso e comum)*
+   → **Não mande o APK por WhatsApp** — ele pode renomear/comprimir e corromper.
+   → Use **Google Drive**, um **link direto de download** ou cabo USB.
+
+5. **Armazenamento cheio** → liberar espaço.
+
+## Dicas para maximizar a compatibilidade
+- No PWABuilder (opções avançadas), deixe **Fallback behavior: Custom Tabs** (padrão). Assim,
+  em aparelhos sem suporte total a TWA, o app ainda abre.
+- **Distribua por link direto** (Drive/site), não por WhatsApp.
+- **Publicar na Play Store** resolve tudo de vez: a loja cuida da compatibilidade, some o aviso do
+  Play Protect e as atualizações ficam automáticas.
+
+---
+
 ## 🔄 Atualizações
 Como o app carrega o site, **tudo que você publica aparece no app automaticamente** (músicas novas,
 visual, etc.). Só precisa gerar APK novo se mudar **ícone**, **nome** ou o manifesto.
+
+⚠️ **Sempre reutilize o mesmo `signing.keystore`** ao gerar um APK novo. Se usar uma chave
+diferente, quem já tem o app instalado recebe "App não instalado" e precisa desinstalar antes —
+e você ainda teria que atualizar o `assetlinks.json` com a nova impressão digital.
 
 ## ❓ Dúvidas comuns
 - **Login funciona no app?** Sim, e continua salvo (não precisa logar toda hora).
