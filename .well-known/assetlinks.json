@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "COLE_AQUI_O_PACKAGE_ID",
+      "package_name": "online.protocolox.twa",
       "sha256_cert_fingerprints": [
-        "COLE_AQUI_A_IMPRESSAO_DIGITAL_SHA256"
+        "8E:87:AA:41:FE:85:63:D2:E3:6B:67:D7:24:D2:61:05:B2:56:C4:2F:BC:B5:5E:43:12:A8:7D:0A:36:AD:B4:EF"
       ]
     }
   }
