@@ -40,9 +40,13 @@ async function sendEmail(to: string, link: string) {
       <p style="text-align:center;color:#9a93c4;margin:0 0 24px;font-size:13px">Redefinição de senha</p>
       <p>Olá! Recebemos um pedido para redefinir a senha do seu acesso ao Protocolo X.</p>
       <p>Clique no botão abaixo para escolher uma nova senha:</p>
-      <p style="text-align:center;margin:24px 0">
-        <a href="${link}" style="background-color:#e8c874;color:#1a1330;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:10px;display:inline-block">Redefinir minha senha</a>
-      </p>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto">
+        <tr>
+          <td bgcolor="#e8c874" align="center" style="background-color:#e8c874;border-radius:10px">
+            <a href="${link}" style="display:inline-block;padding:14px 28px;color:#1a1330;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif;font-size:15px">Redefinir minha senha</a>
+          </td>
+        </tr>
+      </table>
       <p style="color:#9a93c4;font-size:12px">Se você não solicitou isso, pode ignorar este e-mail com segurança. O link expira em pouco tempo.</p>
     </div>`;
 

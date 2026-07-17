@@ -72,13 +72,21 @@ async function sendEmail(to: string, name: string, password: string) {
       <h1 style="color:#f2d98b;letter-spacing:2px;text-align:center;margin:0 0 4px">PROTOCOLO <span style="color:#c4b5fd">X</span></h1>
       <p style="text-align:center;color:#9a93c4;margin:0 0 24px;font-size:13px">Seu acesso foi liberado 👁️</p>
       <p>Olá, ${name}! Sua compra foi confirmada. Aqui estão seus dados de acesso:</p>
-      <div style="background-color:#171235;border:1px solid #c9a24a;border-radius:12px;padding:16px;margin:16px 0">
-        <p style="margin:0 0 8px"><b>E-mail:</b> ${to}</p>
-        <p style="margin:0"><b>Senha:</b> <code style="font-size:16px;color:#f2d98b">${password}</code></p>
-      </div>
-      <p style="text-align:center;margin:24px 0">
-        <a href="${appUrl}" style="background-color:#e8c874;color:#1a1330;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:10px;display:inline-block">Acessar o Protocolo X</a>
-      </p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0">
+        <tr>
+          <td bgcolor="#171235" style="background-color:#171235;border:1px solid #c9a24a;border-radius:12px;padding:16px">
+            <p style="margin:0 0 8px;color:#ece9ff;font-family:Arial,sans-serif"><b>E-mail:</b> ${to}</p>
+            <p style="margin:0;color:#ece9ff;font-family:Arial,sans-serif"><b>Senha:</b> <code style="font-size:16px;color:#f2d98b">${password}</code></p>
+          </td>
+        </tr>
+      </table>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto">
+        <tr>
+          <td bgcolor="#e8c874" align="center" style="background-color:#e8c874;border-radius:10px">
+            <a href="${appUrl}" style="display:inline-block;padding:14px 28px;color:#1a1330;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif;font-size:15px">Acessar o Protocolo X</a>
+          </td>
+        </tr>
+      </table>
       <p style="color:#9a93c4;font-size:12px">Recomendamos trocar sua senha depois de entrar, em "Esqueci minha senha". Guarde este e-mail.</p>
     </div>`;
 
