@@ -733,3 +733,12 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
+/* ================================================================
+   PWA — registra o service worker (app instalável + carregamento rápido)
+   ================================================================ */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {/* sem SW, o app funciona igual */});
+  });
+}
