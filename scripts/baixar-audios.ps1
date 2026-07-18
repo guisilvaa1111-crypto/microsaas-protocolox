@@ -1,5 +1,5 @@
 # ==================================================================
-# PROTOCOLO X — baixa as músicas do Google Drive para a pasta audio/
+# PROTOCOLO DE ASSIS — baixa as músicas do Google Drive para a pasta audio/
 # Uso: clique com o botão direito > "Executar com o PowerShell"
 #      (ou no terminal:  powershell -ExecutionPolicy Bypass -File scripts\baixar-audios.ps1)
 # Só baixa o que ainda não existe, então pode rodar quantas vezes quiser.

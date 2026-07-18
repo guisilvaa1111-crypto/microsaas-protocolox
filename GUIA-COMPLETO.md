@@ -1,4 +1,4 @@
-# 📘 Guia Completo — Protocolo X
+# 📘 Guia Completo — Protocolo de Assis
 
 Tudo que você precisa para: **comprar domínio próprio**, **ter e-mail próprio**,
 **hospedar na Hostinger**, ajustar todas as configurações (Brevo, Supabase, Wiven) e
@@ -116,7 +116,7 @@ Para o e-mail de "esqueci minha senha" sair confiável pelo Brevo:
 | Username | seu **login SMTP** do Brevo (aba SMTP & API → SMTP) |
 | Password | a **chave SMTP** do Brevo (`xsmtpsib-...`) |
 | Sender email | `contato@protocolox.com.br` |
-| Sender name | `Protocolo X` |
+| Sender name | `Protocolo de Assis` |
 
 > A anon key e a URL do projeto **não mudam** — não mexa no `js/supabase-config.js`.
 

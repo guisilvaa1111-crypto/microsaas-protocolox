@@ -1,5 +1,5 @@
 /*
- * PROTOCOLO X — configuração do Supabase (login real)
+ * PROTOCOLO DE ASSIS — configuração do Supabase (login real)
  * ------------------------------------------------------------------
  * Cole aqui os dados do seu projeto Supabase:
  *   Painel Supabase → Project Settings → Data API / API Keys

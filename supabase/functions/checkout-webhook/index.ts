@@ -1,5 +1,5 @@
 // ==================================================================
-// PROTOCOLO X — Webhook de compra (Supabase Edge Function / Deno)
+// PROTOCOLO DE ASSIS — Webhook de compra (Supabase Edge Function / Deno)
 // ------------------------------------------------------------------
 // Fluxo: o checkout chama esta URL quando a compra é aprovada.
 //   1. valida o segredo (para ninguém criar acesso de graça)
@@ -11,7 +11,7 @@
 //   WEBHOOK_SECRET   -> um texto secreto que você inventa (ex.: px_9f3k...)
 //   BREVO_API_KEY    -> chave da API do Brevo
 //   SENDER_EMAIL     -> remetente verificado no Brevo (ex.: contato@seudominio.com)
-//   SENDER_NAME      -> nome do remetente (ex.: Protocolo X)
+//   SENDER_NAME      -> nome do remetente (ex.: Protocolo de Assis)
 //   APP_URL          -> link do app (ex.: https://guisilvaa1111-crypto.github.io/microsaas-protocolox/)
 // (SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são fornecidos automaticamente.)
 // ==================================================================
@@ -69,7 +69,7 @@ async function sendEmail(to: string, name: string, password: string) {
   const appUrl = Deno.env.get("APP_URL") ?? "";
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;background:#0a0918;color:#ece9ff;padding:32px;border-radius:16px">
-      <h1 style="color:#f2d98b;letter-spacing:2px;text-align:center;margin:0 0 4px">PROTOCOLO <span style="color:#c4b5fd">X</span></h1>
+      <h1 style="color:#f2d98b;letter-spacing:2px;text-align:center;margin:0 0 4px">PROTOCOLO DE <span style="color:#c4b5fd">ASSIS</span></h1>
       <p style="text-align:center;color:#9a93c4;margin:0 0 24px;font-size:13px">Seu acesso foi liberado 👁️</p>
       <p>Olá, ${name}! Sua compra foi confirmada. Aqui estão seus dados de acesso:</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0">
@@ -83,7 +83,7 @@ async function sendEmail(to: string, name: string, password: string) {
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto">
         <tr>
           <td bgcolor="#e8c874" align="center" style="background-color:#e8c874;border-radius:10px">
-            <a href="${appUrl}" style="display:inline-block;padding:14px 28px;color:#1a1330;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif;font-size:15px">Acessar o Protocolo X</a>
+            <a href="${appUrl}" style="display:inline-block;padding:14px 28px;color:#1a1330;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif;font-size:15px">Acessar o Protocolo de Assis</a>
           </td>
         </tr>
       </table>
@@ -98,9 +98,9 @@ async function sendEmail(to: string, name: string, password: string) {
       "accept": "application/json",
     },
     body: JSON.stringify({
-      sender: { name: Deno.env.get("SENDER_NAME") ?? "Protocolo X", email: Deno.env.get("SENDER_EMAIL") },
+      sender: { name: Deno.env.get("SENDER_NAME") ?? "Protocolo de Assis", email: Deno.env.get("SENDER_EMAIL") },
       to: [{ email: to, name }],
-      subject: "🔮 Seu acesso ao Protocolo X",
+      subject: "🔮 Seu acesso ao Protocolo de Assis",
       htmlContent: html,
     }),
   });

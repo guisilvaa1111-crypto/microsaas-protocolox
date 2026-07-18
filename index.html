@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0918" />
-  <meta name="description" content="Protocolo X — áudios espirituais para descalcificação da pineal, meditação, autoconhecimento e prosperidade." />
-  <title>Protocolo X</title>
+  <meta name="description" content="Protocolo de Assis — áudios espirituais para descalcificação da pineal, meditação, autoconhecimento e prosperidade." />
+  <title>Protocolo de Assis</title>
 
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
@@ -14,7 +14,7 @@
   <!-- iOS: faz o app abrir em TELA CHEIA quando instalado pela Tela de Início -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Protocolo X" />
+  <meta name="apple-mobile-web-app-title" content="Protocolo de Assis" />
   <meta name="mobile-web-app-capable" content="yes" />
 
   <!-- Fontes: Cinzel (títulos) + Poppins (corpo). Carregadas sem bloquear o render. -->
@@ -23,19 +23,19 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;500;600&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;500;600&display=swap" /></noscript>
 
-  <link rel="stylesheet" href="css/styles.css?v=6" />
+  <link rel="stylesheet" href="css/styles.css?v=7" />
 </head>
 <body>
 
   <!-- ===================== TELA DE LOGIN (visual) ===================== -->
   <!-- Fluxo pronto para conectar a um banco de dados real no futuro.
        Ver comentários em js/app.js (função handleLogin) para integrar Supabase/Firebase. -->
-  <section id="login-screen" class="login" aria-label="Entrar no Protocolo X">
+  <section id="login-screen" class="login" aria-label="Entrar no Protocolo de Assis">
     <div class="login__aura"></div>
     <div class="login__card">
       <div class="brand brand--login">
         <span id="login-emblem" class="emblem"></span>
-        <h1 class="brand__title">PROTOCOLO <span class="brand__x">X</span></h1>
+        <h1 class="brand__title">PROTOCOLO DE <span class="brand__x">ASSIS</span></h1>
         <p class="brand__tagline">Descalcificação da Pineal · Áudios Espirituais</p>
       </div>
 
@@ -76,7 +76,7 @@
       <div class="brand brand--header">
         <span id="header-emblem" class="emblem emblem--sm"></span>
         <div>
-          <h1 class="brand__title brand__title--sm">PROTOCOLO <span class="brand__x">X</span></h1>
+          <h1 class="brand__title brand__title--sm">PROTOCOLO DE <span class="brand__x">ASSIS</span></h1>
           <p class="brand__sub">Jornada de descalcificação da pineal</p>
         </div>
       </div>
@@ -172,9 +172,9 @@
 
   <!-- Supabase (banco + autenticação). defer = baixa em paralelo, não bloqueia. -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="js/supabase-config.js?v=6"></script>
+  <script defer src="js/supabase-config.js?v=7"></script>
   <!-- PDF.js é carregado sob demanda (só ao visualizar um PDF) — ver js/app.js -->
-  <script defer src="js/data.js?v=6"></script>
-  <script defer src="js/app.js?v=6"></script>
+  <script defer src="js/data.js?v=7"></script>
+  <script defer src="js/app.js?v=7"></script>
 </body>
 </html>

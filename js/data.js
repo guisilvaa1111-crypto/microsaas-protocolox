@@ -1,5 +1,5 @@
 /*
- * PROTOCOLO X — base de dados das faixas
+ * PROTOCOLO DE ASSIS — base de dados das faixas
  * ------------------------------------------------------------------
  * Os áudios ficam hospedados na pasta local "audio/" (mesmo domínio do
  * app). Isso é o que garante reprodução confiável, com barra de progresso
@@ -162,7 +162,7 @@ const BONUS = [
     desc: "Manual completo: como usar as frequências corretamente, preparação do ambiente, rotina diária, tempo de uso e orientações para evitar erros.",
     cover: "assets/bonus-guia.jpg",
     file: "guia-pratico-passo-a-passo.png",
-    dl: "Protocolo X - Guia Pratico Passo a Passo.png",
+    dl: "Protocolo de Assis - Guia Pratico Passo a Passo.png",
   },
   {
     tag: "Bônus 2",
@@ -170,7 +170,7 @@ const BONUS = [
     desc: "Manuscrito com exercícios e rituais para desenvolver a intuição, a percepção, a tomada de decisões e a identificação de oportunidades.",
     cover: "assets/bonus-sexto-sentido.jpg",
     file: "oracao-do-sexto-sentido.pdf",
-    dl: "Protocolo X - A Oracao do Sexto Sentido.pdf",
+    dl: "Protocolo de Assis - A Oracao do Sexto Sentido.pdf",
   },
   {
     tag: "Bônus secreto",
@@ -178,6 +178,6 @@ const BONUS = [
     desc: "Oração de São Bento para a prosperidade — um presente especial do seu acesso.",
     cover: "assets/bonus-sao-bento.jpg",
     file: "oracao-de-sao-bento-prosperidade.pdf",
-    dl: "Protocolo X - Oracao de Sao Bento (Prosperidade).pdf",
+    dl: "Protocolo de Assis - Oracao de Sao Bento (Prosperidade).pdf",
   },
 ];

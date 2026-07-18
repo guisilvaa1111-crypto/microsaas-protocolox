@@ -1,4 +1,4 @@
-# 📱 Protocolo X — App instalável (Android e iPhone)
+# 📱 Protocolo de Assis — App instalável (Android e iPhone)
 
 O app já é um **PWA completo** (manifesto + ícones + service worker). Isso permite instalá-lo
 como app de verdade — e o app **é o seu próprio site**: login, Supabase, músicas e bônus
@@ -16,7 +16,7 @@ funcionam exatamente igual, e toda atualização do site aparece no app sozinha.
 ## Opção B — Gerar o arquivo APK (PWABuilder, grátis, sem instalar nada)
 1. Acesse **https://www.pwabuilder.com** → cole `https://protocolox.online` → **Start**
 2. **Package for stores** → **Android** → **Generate Package**
-3. Confira: **Package ID** (ex.: `online.protocolox.app` — **não mude depois**) e **App name**: `Protocolo X`
+3. Confira: **Package ID** (ex.: `online.protocolox.app` — **não mude depois**) e **App name**: `Protocolo de Assis`
 4. Baixe o `.zip`:
    - **`app-release-signed.apk`** → é este que você instala no celular
    - `app-release-bundle.aab` → só para a Play Store
@@ -70,7 +70,7 @@ Gerenciador de Arquivos (que é chato) nem refazer isso a cada deploy.
 2. Toque no botão **Compartilhar** (quadrado com seta pra cima)
 3. **Adicionar à Tela de Início** → **Adicionar**
 
-Resultado: ícone do Protocolo X na tela do iPhone, abre **em tela cheia, sem a barra do Safari** —
+Resultado: ícone do Protocolo de Assis na tela do iPhone, abre **em tela cheia, sem a barra do Safari** —
 a experiência é de app nativo. Eu já configurei as meta tags da Apple para isso funcionar direito.
 
 > É o equivalente ao APK no mundo iOS. Login, sessão salva, músicas e bônus: tudo igual.

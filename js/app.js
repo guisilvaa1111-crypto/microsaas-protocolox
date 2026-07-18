@@ -1,5 +1,5 @@
 /* ==================================================================
-   PROTOCOLO X — lógica do app (player, filtros, favoritos, login)
+   PROTOCOLO DE ASSIS — lógica do app (player, filtros, favoritos, login)
    Depende de js/data.js (TRACKS, TAG_ORDER, trackUrl).
    ================================================================== */
 
@@ -327,7 +327,7 @@ function render() {
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       const t = trackById(Number(el.dataset.dl));
-      if (t) downloadFromBucket(AUDIO_BUCKET, t.file, "Protocolo X - " + t.titulo + ".mp3", null);
+      if (t) downloadFromBucket(AUDIO_BUCKET, t.file, "Protocolo de Assis - " + t.titulo + ".mp3", null);
     });
   });
 }

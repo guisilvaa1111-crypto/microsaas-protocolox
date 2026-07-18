@@ -1,4 +1,4 @@
-# 🔮 Protocolo X
+# 🔮 Protocolo de Assis
 
 Mini app **mobile-first** de áudios espirituais para **descalcificação da pineal** —
 relaxamento, meditação, autoconhecimento e prosperidade.

@@ -1,5 +1,5 @@
 /*
- * PROTOCOLO X — Service Worker
+ * PROTOCOLO DE ASSIS — Service Worker
  * ------------------------------------------------------------------
  * O que ele faz:
  *   • Torna o app instalável (requisito do Android/Chrome para virar APK/PWA)

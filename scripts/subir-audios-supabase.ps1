@@ -1,5 +1,5 @@
 # ==================================================================
-# PROTOCOLO X — envia os áudios da pasta audio/ para o Supabase Storage
+# PROTOCOLO DE ASSIS — envia os áudios da pasta audio/ para o Supabase Storage
 # ------------------------------------------------------------------
 # Pré-requisitos (ver PROTEGER-AUDIOS.md):
 #   1. Ter criado o bucket PRIVADO "audios" no Supabase.

@@ -1,5 +1,5 @@
 // ==================================================================
-// PROTOCOLO X — Recuperação de senha (Supabase Edge Function / Deno)
+// PROTOCOLO DE ASSIS — Recuperação de senha (Supabase Edge Function / Deno)
 // ------------------------------------------------------------------
 // Envia o e-mail de "esqueci minha senha" em PORTUGUÊS, com a cara da
 // marca, pelo Brevo — sem depender do template padrão do Supabase.
@@ -36,9 +36,9 @@ function json(body: unknown, status = 200) {
 async function sendEmail(to: string, link: string) {
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;background:#0a0918;color:#ece9ff;padding:32px;border-radius:16px">
-      <h1 style="color:#f2d98b;letter-spacing:2px;text-align:center;margin:0 0 4px">PROTOCOLO <span style="color:#c4b5fd">X</span></h1>
+      <h1 style="color:#f2d98b;letter-spacing:2px;text-align:center;margin:0 0 4px">PROTOCOLO DE <span style="color:#c4b5fd">ASSIS</span></h1>
       <p style="text-align:center;color:#9a93c4;margin:0 0 24px;font-size:13px">Redefinição de senha</p>
-      <p>Olá! Recebemos um pedido para redefinir a senha do seu acesso ao Protocolo X.</p>
+      <p>Olá! Recebemos um pedido para redefinir a senha do seu acesso ao Protocolo de Assis.</p>
       <p>Clique no botão abaixo para escolher uma nova senha:</p>
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto">
         <tr>
@@ -58,9 +58,9 @@ async function sendEmail(to: string, link: string) {
       "accept": "application/json",
     },
     body: JSON.stringify({
-      sender: { name: Deno.env.get("SENDER_NAME") ?? "Protocolo X", email: Deno.env.get("SENDER_EMAIL") },
+      sender: { name: Deno.env.get("SENDER_NAME") ?? "Protocolo de Assis", email: Deno.env.get("SENDER_EMAIL") },
       to: [{ email: to }],
-      subject: "🔮 Redefinição de senha — Protocolo X",
+      subject: "🔮 Redefinição de senha — Protocolo de Assis",
       htmlContent: html,
     }),
   });

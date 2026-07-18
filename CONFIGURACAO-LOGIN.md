@@ -73,7 +73,7 @@ No Supabase: **Edge Functions** → função `checkout-webhook` → aba **Secret
 | `WEBHOOK_SECRET`  | Um texto secreto que você inventa (ex.: `px_a1b2c3d4e5`)              |
 | `BREVO_API_KEY`   | A chave `xkeysib-...` do Brevo                                         |
 | `SENDER_EMAIL`    | O e-mail remetente que você verificou no Brevo                        |
-| `SENDER_NAME`     | `Protocolo X`                                                          |
+| `SENDER_NAME`     | `Protocolo de Assis`                                                          |
 | `APP_URL`         | O link do seu app (ex.: `https://guisilvaa1111-crypto.github.io/microsaas-protocolox/`) |
 
 > `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` já são fornecidos automaticamente — não precisa criar.
@@ -97,7 +97,7 @@ Quando você definir a plataforma, me avise que eu ajusto:
 - **Hotmart**: Ferramentas → Webhook (Postback) → evento *Compra completa*.
 - **Stripe**: Developers → Webhooks → evento `checkout.session.completed`.
 
-Também recomendo, na tela de login, apontar o botão **"Adquira o Protocolo X"** para o link do seu
+Também recomendo, na tela de login, apontar o botão **"Adquira o Protocolo de Assis"** para o link do seu
 checkout (no `js/app.js`, procure por `SUA_URL_DE_CHECKOUT`).
 
 ---

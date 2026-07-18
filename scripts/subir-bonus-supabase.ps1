@@ -1,5 +1,5 @@
 # ==================================================================
-# PROTOCOLO X — envia os BÔNUS (pasta bonus/) para o Supabase Storage
+# PROTOCOLO DE ASSIS — envia os BÔNUS (pasta bonus/) para o Supabase Storage
 # ------------------------------------------------------------------
 # Pré-requisitos:
 #   1. Ter criado o bucket PRIVADO "bonus" no Supabase.
