@@ -158,11 +158,11 @@ TRACKS.forEach((t, i) => { t.id = i + 1; });
 const BONUS = [
   {
     tag: "Bônus 1",
-    titulo: "Guia Prático Passo a Passo",
+    titulo: "Manual de Uso",
     desc: "Manual completo: como usar as frequências corretamente, preparação do ambiente, rotina diária, tempo de uso e orientações para evitar erros.",
     cover: "assets/bonus-guia.jpg",
     file: "guia-pratico-passo-a-passo.png",
-    dl: "Protocolo de Assis - Guia Pratico Passo a Passo.png",
+    dl: "Protocolo de Assis - Manual de Uso.png",
   },
   {
     tag: "Bônus 2",
