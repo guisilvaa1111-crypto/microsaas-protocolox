@@ -40,19 +40,24 @@ function randomPassword(len = 10): string {
 }
 
 // Procura o e-mail do comprador em vários formatos comuns de webhook
-// (Kiwify, Hotmart, Stripe, etc.). Adapte se sua plataforma usar outro campo.
+// (Payt, Wiven, Kiwify, Hotmart, Stripe, etc.). Se a Payt usar outro campo,
+// veja o payload real no log (modo &debug=1) e acrescente aqui.
 function extractEmail(p: any): string | null {
   const candidates = [
-    p?.client?.email,                          // Wiven
+    p?.client?.email,                          // Wiven / Payt
+    p?.customer?.email,                         // Payt
     p?.email,
-    p?.customer?.email,
     p?.customer_email,
     p?.buyer?.email,
     p?.Customer?.email,
-    p?.data?.customer?.email,
-    p?.data?.object?.customer_details?.email, // Stripe
-    p?.data?.buyer?.email,                     // Hotmart
+    p?.sale?.client?.email,                     // Payt (venda aninhada)
+    p?.sale?.customer?.email,
     p?.order?.customer?.email,
+    p?.order?.client?.email,
+    p?.data?.customer?.email,
+    p?.data?.client?.email,
+    p?.data?.object?.customer_details?.email,   // Stripe
+    p?.data?.buyer?.email,                       // Hotmart
   ];
   const email = candidates.find((e) => typeof e === "string" && e.includes("@"));
   return email ? String(email).trim().toLowerCase() : null;
@@ -60,7 +65,8 @@ function extractEmail(p: any): string | null {
 
 function extractName(p: any): string {
   return (
-    p?.client?.name ?? p?.name ?? p?.customer?.name ?? p?.buyer?.name ??
+    p?.client?.name ?? p?.customer?.name ?? p?.name ?? p?.buyer?.name ??
+    p?.sale?.client?.name ?? p?.order?.customer?.name ??
     p?.data?.buyer?.name ?? p?.customer_name ?? "Cliente"
   );
 }
@@ -111,20 +117,30 @@ async function sendEmail(to: string, name: string, password: string) {
 // evento/status (robusto a formatos diferentes de plataforma).
 //   grant  -> liberar acesso (compra paga/aprovada)
 //   revoke -> remover acesso (estorno, reembolso, chargeback, MED)
-//   ignore -> não faz nada (ex.: transação criada/pendente)
+//   ignore -> não faz nada (ex.: aguardando pagamento, cancelada, abandono)
+//
+// PAYT (checkout BR) usa status em português. Eventos:
+//   Liberar : "Finalizada/Aprovada", "Venda Paga"
+//   Revogar : "Cancelada - Reembolsada", "Cancelada - Chargeback",
+//             "Solicitação de Reembolso"
+//   Ignorar : "Aguardando pagamento", "Pagamento Expirado", "Cancelada",
+//             "Abandono de Checkout"
+// ATENÇÃO: "Aguardando pagamento" contém "pagamento" — por isso a checagem
+// de espera/falha vem ANTES da de "pago", e "pag[ao]" exige limite de palavra.
 function classifyEvent(p: any): "grant" | "revoke" | "ignore" {
   const raw = [
     p?.event, p?.type, p?.status, p?.event_type, p?.current_status,
     p?.transaction?.status, p?.transaction?.event,
     p?.data?.status, p?.data?.event, p?.data?.transaction?.status,
-    p?.order_status, p?.payment_status,
+    p?.order_status, p?.payment_status, p?.sale?.status, p?.order?.status,
   ].filter((v) => typeof v === "string").join(" ").toLowerCase();
 
-  // Revogar: estorno / reembolso / chargeback / MED / disputa perdida.
-  // (Wiven usa nomes em inglês, ex.: TRANSACTION_REFUNDED, CHARGEBACK, MED_*)
+  // 1) Revogar: estorno / reembolso / chargeback / MED / disputa perdida.
   if (/estorn|refund|reembols|charge.?back|devolu|disput|contest|(^|[^a-z])med([^a-z]|$)/.test(raw)) return "revoke";
-  // Liberar: pago / aprovado / concluído (Wiven: TRANSACTION_PAID / COMPLETED).
-  if (/paid|pag[ao]|approv|aprovad|complet|conclu|success|autoriz/.test(raw)) return "grant";
+  // 2) Estados de espera/falha NUNCA liberam (evita falso "paga" em "pagamento").
+  if (/aguard|pendent|expir|abandon|recus|reprov|frustrad|\bfalh|cancel|criad|iniciad/.test(raw)) return "ignore";
+  // 3) Liberar: pago / aprovado / finalizada / concluído (paga como palavra inteira).
+  if (/\bpag[ao]\b|aprovad|approv|finaliz|paid|complet|conclu|success|autoriz/.test(raw)) return "grant";
   return "ignore";
 }
 
