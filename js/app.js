@@ -335,6 +335,8 @@ function render() {
       else saveTrackOffline(t, el);
     });
   });
+
+  updateSaveAllBtn();
 }
 
 /* ================================================================
@@ -430,6 +432,36 @@ async function removeBonusOffline(b) {
   await OfflineStore.del("bonus:" + b.file);
   offlineKeys.delete("bonus:" + b.file);
   renderBonus();
+}
+
+// Salva TODAS as faixas offline de uma vez (pula as que já estão salvas).
+async function saveAllOffline() {
+  if (!navigator.onLine) { alert("Conecte-se à internet para baixar todas as faixas."); return; }
+  const btn = document.getElementById("save-all-btn");
+  const label = document.getElementById("save-all-label");
+  const pending = TRACKS.filter((t) => !offlineKeys.has("audio:" + t.id));
+  if (pending.length === 0) { alert("Todas as faixas já estão salvas offline. 💜"); return; }
+
+  btn.disabled = true;
+  let done = 0, fail = 0;
+  for (const t of pending) {
+    label.textContent = `Salvando ${done + fail + 1}/${pending.length}…`;
+    try { await saveOffline("audio:" + t.id, AUDIO_BUCKET, t.file); done++; }
+    catch (e) { fail++; }
+  }
+  render();          // marca todas as salvas + atualiza o botão
+  if (fail) alert(`Salvei ${done} faixa(s) offline. ${fail} não baixaram — toque de novo para tentar as que faltaram.`);
+}
+
+// Ajusta o rótulo/estado do botão "Salvar tudo" conforme o que já está salvo.
+function updateSaveAllBtn() {
+  const btn = document.getElementById("save-all-btn");
+  const label = document.getElementById("save-all-label");
+  if (!btn || !label) return;
+  const allSaved = TRACKS.length > 0 && TRACKS.every((t) => offlineKeys.has("audio:" + t.id));
+  btn.classList.toggle("save-all--done", allSaved);
+  label.textContent = allSaved ? "Tudo salvo offline ✓" : "Salvar tudo offline";
+  btn.disabled = allSaved || !navigator.onLine;
 }
 
 // Mostra/esconde a faixa de aviso "Você está offline".
@@ -825,6 +857,7 @@ function init() {
     render();
   });
   document.getElementById("logout-btn").addEventListener("click", logout);
+  document.getElementById("save-all-btn").addEventListener("click", saveAllOffline);
 
   // Abas Músicas / Bônus
   document.getElementById("tab-musicas").addEventListener("click", () => switchView("musicas"));
