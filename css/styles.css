@@ -466,3 +466,40 @@ a { color: var(--gold-bright); text-decoration: none; }
   .player { padding-left: max(16px, calc((100vw - 640px) / 2)); padding-right: max(16px, calc((100vw - 640px) / 2)); }
   .brand__title { font-size: 2.1rem; }
 }
+
+/* ==================================================================
+   OFFLINE — aviso, estado "salvo" e faixas indisponíveis sem internet
+   ================================================================== */
+.offline-banner {
+  margin: 0; padding: 9px 16px; text-align: center;
+  font-size: 0.8rem; font-weight: 600; color: #1a1330;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+}
+
+/* Botão de salvar offline da FAIXA: fica dourado quando salvo. */
+.dl-btn--saved { color: var(--gold-bright); }
+.dl-btn--saved:hover { color: #fff; }
+.dl-btn .spin { animation: dl-spin 0.9s linear infinite; }
+@keyframes dl-spin { to { transform: rotate(360deg); } }
+
+/* Faixa salva offline: pontinho dourado no número. */
+.track--saved .track__num { position: relative; }
+.track--saved .track__num::after {
+  content: ""; position: absolute; top: -2px; right: -2px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--gold-bright); box-shadow: 0 0 6px var(--gold);
+}
+
+/* Offline e sem estar salva: esmaecida (não dá pra tocar). */
+.track--locked { opacity: 0.4; }
+.track--locked .track__title::after {
+  content: " · indisponível offline"; color: var(--muted-2);
+  font-size: 0.72rem; font-weight: 500;
+}
+
+/* Bônus salvo offline: botão muda para contorno dourado (em vez de preenchido). */
+.bonus-card__dl.is-saved {
+  background: var(--gold-soft); color: var(--gold-bright);
+  border: 1px solid var(--gold);
+}
+.bonus-card__dl.is-saved:hover { filter: none; background: rgba(217, 180, 95, 0.22); }

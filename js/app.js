@@ -286,20 +286,23 @@ function render() {
   count.textContent = `${queue.length} ${queue.length === 1 ? "faixa" : "faixas"}`;
   empty.classList.toggle("hidden", queue.length > 0);
 
+  const isOffline = !navigator.onLine;
   list.innerHTML = queue.map((t) => {
     const isFav = favorites.has(t.id);
     const isPlaying = t.id === currentId;
+    const saved = offlineKeys.has("audio:" + t.id);
+    const locked = isOffline && !saved; // offline e não baixado -> não dá pra tocar
     const tagsHtml = t.tags.map((tag) => `<span class="track__tag">${tag}</span>`).join("");
     return `
-      <li class="track${isPlaying ? " playing" : ""}${isPlaying && audio.paused ? " paused" : ""}" data-id="${t.id}">
+      <li class="track${isPlaying ? " playing" : ""}${isPlaying && audio.paused ? " paused" : ""}${saved ? " track--saved" : ""}${locked ? " track--locked" : ""}" data-id="${t.id}">
         <div class="track__num">${String(t.id).padStart(2, "0")}</div>
         <div class="track__eq"><span></span><span></span><span></span></div>
         <div class="track__body">
           <div class="track__title">${t.titulo}</div>
           <div class="track__tags">${tagsHtml}</div>
         </div>
-        <button class="dl-btn" data-dl="${t.id}" aria-label="Baixar faixa">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <button class="dl-btn${saved ? " dl-btn--saved" : ""}" data-dl="${t.id}" aria-label="${saved ? "Remover download offline" : "Salvar offline"}" title="${saved ? "Salvo no app (toque para remover)" : "Salvar offline"}">
+          ${saved ? ICON_CHECK : ICON_DL}
         </button>
         <button class="fav-btn${isFav ? " active" : ""}" data-fav="${t.id}" aria-label="Favoritar">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2 5 5.3 5c2 0 3.4 1.2 4.7 2.8C11.3 6.2 12.7 5 14.7 5 18 5 19.6 8.4 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
@@ -322,12 +325,14 @@ function render() {
       render();
     });
   });
-  // baixar faixa
+  // salvar / remover faixa offline (fica DENTRO do app, não vira arquivo no celular)
   list.querySelectorAll(".dl-btn").forEach((el) => {
     el.addEventListener("click", (e) => {
       e.stopPropagation();
       const t = trackById(Number(el.dataset.dl));
-      if (t) downloadFromBucket(AUDIO_BUCKET, t.file, "Protocolo de Assis - " + t.titulo + ".mp3", null);
+      if (!t) return;
+      if (offlineKeys.has("audio:" + t.id)) removeTrackOffline(t);
+      else saveTrackOffline(t, el);
     });
   });
 }
@@ -370,9 +375,75 @@ async function downloadFromBucket(bucket, path, filename, btn) {
   }
 }
 
+/* ================================================================
+   OFFLINE — salva os conteúdos DENTRO do app (IndexedDB) e toca/vê sem net.
+   Os arquivos NÃO viram download solto no celular (dificulta pirataria).
+   ================================================================ */
+const ICON_DL = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
+const ICON_CHECK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+const ICON_SPIN = `<svg class="spin" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>`;
+
+// URL de origem do arquivo (link assinado temporário) ou caminho local (demo).
+async function sourceUrl(bucket, path, expires) {
+  const client = getClient();
+  if (!client) return (bucket === BONUS_BUCKET ? "bonus/" : "audio/") + path;
+  const { data, error } = await client.storage.from(bucket).createSignedUrl(path, expires || 600);
+  if (error || !data) throw new Error(error ? error.message : "sem URL assinada");
+  return data.signedUrl;
+}
+
+// Baixa o arquivo e guarda o Blob no armazenamento interno do app.
+async function saveOffline(key, bucket, path) {
+  const url = await sourceUrl(bucket, path, 600);
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("HTTP " + resp.status);
+  const blob = await resp.blob();
+  await OfflineStore.put(key, blob);
+  offlineKeys.add(key);
+}
+
+async function saveTrackOffline(t, btn) {
+  if (!navigator.onLine) { alert("Conecte-se à internet para salvar esta faixa offline."); return; }
+  if (btn) { btn.disabled = true; btn.innerHTML = ICON_SPIN; }
+  try { await saveOffline("audio:" + t.id, AUDIO_BUCKET, t.file); }
+  catch (e) { alert("Não foi possível salvar offline agora. Tente novamente."); }
+  finally { render(); }
+}
+
+async function removeTrackOffline(t) {
+  if (!confirm("Remover esta faixa do armazenamento offline do app?")) return;
+  await OfflineStore.del("audio:" + t.id);
+  offlineKeys.delete("audio:" + t.id);
+  render();
+}
+
+async function saveBonusOffline(b, btn) {
+  if (!navigator.onLine) { alert("Conecte-se à internet para salvar este bônus offline."); return; }
+  if (btn) { btn.disabled = true; btn.textContent = "Salvando…"; }
+  try { await saveOffline("bonus:" + b.file, BONUS_BUCKET, b.file); }
+  catch (e) { alert("Não foi possível salvar offline agora. Tente novamente."); }
+  finally { renderBonus(); }
+}
+
+async function removeBonusOffline(b) {
+  if (!confirm("Remover este bônus do armazenamento offline do app?")) return;
+  await OfflineStore.del("bonus:" + b.file);
+  offlineKeys.delete("bonus:" + b.file);
+  renderBonus();
+}
+
+// Mostra/esconde a faixa de aviso "Você está offline".
+function updateOfflineBanner() {
+  const el = document.getElementById("offline-banner");
+  if (el) el.classList.toggle("hidden", navigator.onLine);
+}
+function onConnChange() { updateOfflineBanner(); render(); renderBonus(); }
+
 function renderBonus() {
   const list = document.getElementById("bonus-list");
-  list.innerHTML = BONUS.map((b, i) => `
+  list.innerHTML = BONUS.map((b, i) => {
+    const bsaved = offlineKeys.has("bonus:" + b.file);
+    return `
     <li class="bonus-card">
       <img class="bonus-card__cover" src="${b.cover}" alt="${b.titulo}" />
       <div class="bonus-card__body">
@@ -384,22 +455,31 @@ function renderBonus() {
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
             Ver
           </button>
-          <button class="bonus-card__dl" data-bonus="${i}">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Baixar
+          <button class="bonus-card__dl${bsaved ? " is-saved" : ""}" data-bonus="${i}" title="${bsaved ? "Salvo no app (toque para remover)" : "Salvar offline"}">
+            ${bsaved ? ICON_CHECK : ICON_DL}
+            ${bsaved ? "Salvo offline" : "Salvar offline"}
           </button>
         </div>
       </div>
-    </li>`).join("");
+    </li>`;
+  }).join("");
   list.querySelectorAll(".bonus-card__dl").forEach((el) => {
     el.addEventListener("click", () => {
       const b = BONUS[Number(el.dataset.bonus)];
-      downloadFromBucket(BONUS_BUCKET, b.file, b.dl, el);
+      if (offlineKeys.has("bonus:" + b.file)) removeBonusOffline(b);
+      else saveBonusOffline(b, el);
     });
   });
   list.querySelectorAll(".bonus-card__view").forEach((el) => {
     el.addEventListener("click", () => previewBonus(Number(el.dataset.view), el));
   });
+}
+
+// Guarda a URL temporária (blob:) do bônus aberto, para liberar ao fechar.
+let previewObjUrl = null;
+function setPreviewObjUrl(u) {
+  if (previewObjUrl) URL.revokeObjectURL(previewObjUrl);
+  previewObjUrl = u;
 }
 
 // Abre a visualização do bônus no modal (imagem ou PDF), sem baixar nem sair do app.
@@ -411,8 +491,16 @@ async function previewBonus(i, btn) {
   if (btn) { btn.disabled = true; btn.textContent = "Abrindo…"; }
   let url;
   try {
-    if (!client) {
+    // 1) Salvo offline? Abre de dentro do app (funciona sem internet).
+    const blob = await OfflineStore.get("bonus:" + b.file);
+    if (blob) {
+      setPreviewObjUrl(URL.createObjectURL(blob));
+      url = previewObjUrl;
+    } else if (!client) {
       url = "bonus/" + b.file;
+    } else if (!navigator.onLine) {
+      alert("Você está offline. Toque em \"Salvar offline\" (com internet) para ver este bônus sem conexão.");
+      return;
     } else {
       const { data, error } = await client.storage.from(BONUS_BUCKET).createSignedUrl(b.file, 600);
       if (error || !data) throw new Error(error ? error.message : "sem URL");
@@ -546,6 +634,7 @@ function closePreview() {
   pdfToken++; // cancela qualquer renderização de PDF em andamento
   document.getElementById("preview-modal").classList.add("hidden");
   document.getElementById("preview-content").innerHTML = "";
+  setPreviewObjUrl(null); // libera o blob do bônus salvo offline
 }
 
 function switchView(view) {
@@ -572,11 +661,19 @@ const signedCache = new Map(); // id -> { url, exp }  (evita gerar link a cada p
  *   • Sem Supabase (modo demonstração/local): usa o arquivo local audio/.
  */
 async function resolveSrc(t) {
-  const client = getClient();
-  if (!client) return trackUrl(t); // modo local/demonstração
+  // 1) Salvo offline? Toca de DENTRO do app (funciona sem internet).
+  const blob = await OfflineStore.get("audio:" + t.id);
+  if (blob) return { url: URL.createObjectURL(blob), isObj: true };
 
+  const client = getClient();
+  if (!client) return { url: trackUrl(t), isObj: false }; // modo local/demonstração
+
+  // 2) Offline e não salvo -> não há como tocar.
+  if (!navigator.onLine) throw new Error("OFFLINE_NAO_SALVO");
+
+  // 3) Link assinado temporário (conteúdo protegido; só para logado).
   const cached = signedCache.get(t.id);
-  if (cached && cached.exp > Date.now() + 30000) return cached.url;
+  if (cached && cached.exp > Date.now() + 30000) return { url: cached.url, isObj: false };
 
   const { data, error } = await client.storage
     .from(AUDIO_BUCKET)
@@ -584,10 +681,18 @@ async function resolveSrc(t) {
   if (error || !data) throw new Error(error ? error.message : "sem URL assinada");
 
   signedCache.set(t.id, { url: data.signedUrl, exp: Date.now() + 3600 * 1000 });
-  return data.signedUrl;
+  return { url: data.signedUrl, isObj: false };
 }
 
 let playToken = 0; // protege contra corrida quando trocam de faixa rápido
+let currentObjUrl = null;
+
+// Define o src do áudio, liberando a URL temporária (blob:) anterior, se houver.
+function setAudioSrc(url, isObj) {
+  if (currentObjUrl) { URL.revokeObjectURL(currentObjUrl); currentObjUrl = null; }
+  if (isObj) currentObjUrl = url;
+  audio.src = url;
+}
 
 async function playTrack(id) {
   const t = trackById(id);
@@ -599,13 +704,16 @@ async function playTrack(id) {
 
   const myToken = ++playToken;
   try {
-    const src = await resolveSrc(t);
-    if (myToken !== playToken) return; // o usuário já pediu outra faixa
-    audio.src = src;
+    const { url, isObj } = await resolveSrc(t);
+    if (myToken !== playToken) { if (isObj) URL.revokeObjectURL(url); return; } // trocou de faixa
+    setAudioSrc(url, isObj);
     await audio.play().catch(() => {/* autoplay bloqueado -> toca no botão */});
   } catch (e) {
     if (myToken !== playToken) return;
-    document.getElementById("np-tags").textContent = "Não foi possível carregar o áudio.";
+    document.getElementById("np-tags").textContent =
+      String(e && e.message).indexOf("OFFLINE_NAO_SALVO") !== -1
+        ? "Offline: salve esta faixa (ícone ↓) com internet para ouvir sem conexão."
+        : "Não foi possível carregar o áudio.";
   }
 }
 
@@ -727,6 +835,19 @@ function init() {
   document.getElementById("preview-modal").addEventListener("click", (e) => {
     if (e.target.id === "preview-modal") closePreview();
   });
+
+  // Offline: carrega o índice do que já está salvo e re-renderiza com o estado certo.
+  requestPersistentStorage();
+  OfflineStore.keys().then((ks) => {
+    ks.forEach((k) => offlineKeys.add(k));
+    render();
+    renderBonus();
+  });
+
+  // Reage a ficar online/offline (mostra aviso e atualiza a lista).
+  window.addEventListener("online", onConnChange);
+  window.addEventListener("offline", onConnChange);
+  updateOfflineBanner();
 
   render();
   renderBonus();
