@@ -384,6 +384,8 @@ async function downloadFromBucket(bucket, path, filename, btn) {
 const ICON_DL = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
 const ICON_CHECK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 const ICON_SPIN = `<svg class="spin" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>`;
+const ICON_PAUSE = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`;
+const ICON_TRASH = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>`;
 
 // URL de origem do arquivo (link assinado temporário) ou caminho local (demo).
 async function sourceUrl(bucket, path, expires) {
@@ -434,34 +436,89 @@ async function removeBonusOffline(b) {
   renderBonus();
 }
 
-// Salva TODAS as faixas offline de uma vez (pula as que já estão salvas).
-async function saveAllOffline() {
-  if (!navigator.onLine) { alert("Conecte-se à internet para baixar todas as faixas."); return; }
-  const btn = document.getElementById("save-all-btn");
-  const label = document.getElementById("save-all-label");
-  const pending = TRACKS.filter((t) => !offlineKeys.has("audio:" + t.id));
-  if (pending.length === 0) { alert("Todas as faixas já estão salvas offline. 💜"); return; }
+// Estado do botão único "Salvar tudo": está baixando? foi pedido pausar?
+let isDownloadingAll = false;
+let pauseAllRequested = false;
 
-  btn.disabled = true;
-  let done = 0, fail = 0;
-  for (const t of pending) {
-    label.textContent = `Salvando ${done + fail + 1}/${pending.length}…`;
-    try { await saveOffline("audio:" + t.id, AUDIO_BUCKET, t.file); done++; }
-    catch (e) { fail++; }
-  }
-  render();          // marca todas as salvas + atualiza o botão
-  if (fail) alert(`Salvei ${done} faixa(s) offline. ${fail} não baixaram — toque de novo para tentar as que faltaram.`);
+// TUDO (faixas E bônus) já está salvo offline?
+function allSavedNow() {
+  return TRACKS.length > 0
+    && TRACKS.every((t) => offlineKeys.has("audio:" + t.id))
+    && BONUS.every((b) => offlineKeys.has("bonus:" + b.file));
 }
 
-// Ajusta o rótulo/estado do botão "Salvar tudo" conforme o que já está salvo.
+// Clique no botão único -> baixa tudo / pausa / exclui tudo, conforme o estado.
+function onSaveAllClick() {
+  if (isDownloadingAll) { pauseAllRequested = true; return; } // pausar o download
+  if (allSavedNow()) { removeAllOffline(); return; }          // excluir todos
+  saveAllOffline();                                           // salvar tudo
+}
+
+// Salva TODAS as faixas E TODOS os bônus offline (pula os que já estão salvos).
+async function saveAllOffline() {
+  if (!navigator.onLine) { alert("Conecte-se à internet para baixar tudo offline."); return; }
+  const label = document.getElementById("save-all-label");
+  const icon = document.getElementById("save-all-icon");
+
+  const pending = [
+    ...TRACKS.filter((t) => !offlineKeys.has("audio:" + t.id))
+             .map((t) => ({ key: "audio:" + t.id, bucket: AUDIO_BUCKET, path: t.file })),
+    ...BONUS.filter((b) => !offlineKeys.has("bonus:" + b.file))
+            .map((b) => ({ key: "bonus:" + b.file, bucket: BONUS_BUCKET, path: b.file })),
+  ];
+  if (pending.length === 0) { alert("Tudo já está salvo offline. 💜"); return; }
+
+  isDownloadingAll = true;
+  pauseAllRequested = false;
+  if (icon) icon.innerHTML = ICON_PAUSE;
+
+  let done = 0, fail = 0;
+  for (let i = 0; i < pending.length; i++) {
+    if (pauseAllRequested) break; // usuário tocou para pausar
+    if (label) label.textContent = `Pausar (${i + 1}/${pending.length})`;
+    try { await saveOffline(pending[i].key, pending[i].bucket, pending[i].path); done++; }
+    catch (e) { fail++; }
+  }
+
+  const paused = pauseAllRequested;
+  isDownloadingAll = false;
+  pauseAllRequested = false;
+  render();       // atualiza as marcas das faixas + o botão
+  renderBonus();  // atualiza as marcas dos bônus
+  if (!paused && fail) alert(`Salvei ${done} item(ns) offline. ${fail} não baixaram — toque de novo para tentar os que faltaram.`);
+}
+
+// Exclui TODOS os downloads offline (faixas e bônus).
+async function removeAllOffline() {
+  if (!confirm("Excluir TODOS os downloads offline (faixas e bônus)? Você poderá baixar de novo quando quiser.")) return;
+  const keys = await OfflineStore.keys();
+  for (const k of keys) await OfflineStore.del(k);
+  offlineKeys.clear();
+  render();
+  renderBonus();
+}
+
+// Ajusta ícone/rótulo/estado do botão único conforme a situação.
 function updateSaveAllBtn() {
   const btn = document.getElementById("save-all-btn");
   const label = document.getElementById("save-all-label");
+  const icon = document.getElementById("save-all-icon");
   if (!btn || !label) return;
-  const allSaved = TRACKS.length > 0 && TRACKS.every((t) => offlineKeys.has("audio:" + t.id));
+
+  // Durante o download o texto/ícone são definidos no próprio loop (fica clicável p/ pausar).
+  if (isDownloadingAll) { btn.disabled = false; btn.classList.remove("save-all--done"); return; }
+
+  const allSaved = allSavedNow();
   btn.classList.toggle("save-all--done", allSaved);
-  label.textContent = allSaved ? "Tudo salvo offline ✓" : "Salvar tudo offline";
-  btn.disabled = allSaved || !navigator.onLine;
+  if (allSaved) {
+    if (icon) icon.innerHTML = ICON_TRASH;
+    label.textContent = "Excluir todos os downloads";
+    btn.disabled = false;
+  } else {
+    if (icon) icon.innerHTML = ICON_DL;
+    label.textContent = "Salvar tudo offline";
+    btn.disabled = !navigator.onLine;
+  }
 }
 
 // Mostra/esconde a faixa de aviso "Você está offline".
@@ -505,6 +562,7 @@ function renderBonus() {
   list.querySelectorAll(".bonus-card__view").forEach((el) => {
     el.addEventListener("click", () => previewBonus(Number(el.dataset.view), el));
   });
+  updateSaveAllBtn(); // bônus salvos entram na conta do "Salvar/Excluir tudo"
 }
 
 // Guarda a URL temporária (blob:) do bônus aberto, para liberar ao fechar.
@@ -857,7 +915,7 @@ function init() {
     render();
   });
   document.getElementById("logout-btn").addEventListener("click", logout);
-  document.getElementById("save-all-btn").addEventListener("click", saveAllOffline);
+  document.getElementById("save-all-btn").addEventListener("click", onSaveAllClick);
 
   // Abas Músicas / Bônus
   document.getElementById("tab-musicas").addEventListener("click", () => switchView("musicas"));

@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;500;600&display=swap" media="print" onload="this.media='all'" />
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Poppins:wght@400;500;600&display=swap" /></noscript>
 
-  <link rel="stylesheet" href="css/styles.css?v=11" />
+  <link rel="stylesheet" href="css/styles.css?v=12" />
 </head>
 <body>
 
@@ -112,7 +112,7 @@
         <div class="list-bar">
           <p id="track-count" class="count"></p>
           <button id="save-all-btn" class="save-all" type="button">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="save-all-icon" class="save-all__icon"></span>
             <span id="save-all-label">Salvar tudo offline</span>
           </button>
         </div>
@@ -183,10 +183,10 @@
 
   <!-- Supabase (banco + autenticação). defer = baixa em paralelo, não bloqueia. -->
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="js/supabase-config.js?v=11"></script>
+  <script defer src="js/supabase-config.js?v=12"></script>
   <!-- PDF.js é carregado sob demanda (só ao visualizar um PDF) — ver js/app.js -->
-  <script defer src="js/offline.js?v=11"></script>
-  <script defer src="js/data.js?v=11"></script>
-  <script defer src="js/app.js?v=11"></script>
+  <script defer src="js/offline.js?v=12"></script>
+  <script defer src="js/data.js?v=12"></script>
+  <script defer src="js/app.js?v=12"></script>
 </body>
 </html>
