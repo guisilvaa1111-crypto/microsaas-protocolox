@@ -305,7 +305,7 @@ function render() {
           ${saved ? ICON_CHECK : ICON_DL}
         </button>
         <button class="fav-btn${isFav ? " active" : ""}" data-fav="${t.id}" aria-label="Favoritar">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2 5 5.3 5c2 0 3.4 1.2 4.7 2.8C11.3 6.2 12.7 5 14.7 5 18 5 19.6 8.4 22 11.7 19.5 16.4 12 21 12 21z"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><polygon points="12 2.5 14.85 8.28 21.22 9.2 16.61 13.69 17.69 20.02 12 17.03 6.31 20.02 7.39 13.69 2.78 9.2 9.15 8.28"/></svg>
         </button>
       </li>`;
   }).join("");
