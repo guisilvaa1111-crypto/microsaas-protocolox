@@ -257,6 +257,8 @@ function buildTagFilters() {
   });
 }
 
+const TAG_PRIMEIRO = "Cantos Gregorianos"; // esta categoria aparece no topo da lista
+
 function getFilteredTracks() {
   return TRACKS.filter((t) => {
     // tag
@@ -271,6 +273,15 @@ function getFilteredTracks() {
       if (!hay.includes(searchTerm)) return false;
     }
     return true;
+  })
+  // Ordem de exibição: cantos gregorianos primeiro, depois o resto.
+  // (o .filter acima já devolve um array novo, então isto NÃO altera TRACKS
+  //  nem os ids — favoritos e downloads offline continuam apontando certo)
+  .sort((a, b) => {
+    const ag = a.tags.includes(TAG_PRIMEIRO) ? 0 : 1;
+    const bg = b.tags.includes(TAG_PRIMEIRO) ? 0 : 1;
+    if (ag !== bg) return ag - bg;
+    return a.id - b.id; // dentro de cada grupo, mantém a ordem original
   });
 }
 
@@ -287,7 +298,7 @@ function render() {
   empty.classList.toggle("hidden", queue.length > 0);
 
   const isOffline = !navigator.onLine;
-  list.innerHTML = queue.map((t) => {
+  list.innerHTML = queue.map((t, i) => {
     const isFav = favorites.has(t.id);
     const isPlaying = t.id === currentId;
     const saved = offlineKeys.has("audio:" + t.id);
@@ -295,7 +306,7 @@ function render() {
     const tagsHtml = t.tags.map((tag) => `<span class="track__tag">${tag}</span>`).join("");
     return `
       <li class="track${isPlaying ? " playing" : ""}${isPlaying && audio.paused ? " paused" : ""}${saved ? " track--saved" : ""}${locked ? " track--locked" : ""}" data-id="${t.id}">
-        <div class="track__num">${String(t.id).padStart(2, "0")}</div>
+        <div class="track__num">${String(i + 1).padStart(2, "0")}</div>
         <div class="track__eq"><span></span><span></span><span></span></div>
         <div class="track__body">
           <div class="track__title">${t.titulo}</div>

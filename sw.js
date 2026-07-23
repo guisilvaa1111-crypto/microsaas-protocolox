@@ -17,7 +17,7 @@
  * ------------------------------------------------------------------
  */
 
-const CACHE = "protocolox-v10";
+const CACHE = "protocolox-v11";
 
 self.addEventListener("install", () => {
   self.skipWaiting(); // ativa a versão nova do SW imediatamente
