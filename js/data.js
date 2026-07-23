@@ -14,7 +14,7 @@
  *
  * TAGS disponíveis (mantenha a grafia igual para os filtros funcionarem):
  *   "Relaxamento" · "Meditação" · "Autoconhecimento" · "Prosperidade"
- *   "Sono" · "Cura" · "Foco" · "Terceiro Olho"
+ *   "Sono" · "Cura" · "Foco" · "Terceiro Olho" · "Cantos Gregorianos"
  * ------------------------------------------------------------------
  */
 
@@ -137,12 +137,34 @@ const TRACKS = [
   { titulo: "Zumbido Quente",              tags: ["Meditação", "Foco"],                 file: "108-zumbido-quente.mp3" },
   { titulo: "Vibração Calorosa",           tags: ["Relaxamento", "Cura"],               file: "109-vibracao-calorosa.mp3" },
   { titulo: "Horizontes Sem Peso",         tags: ["Relaxamento", "Meditação"],          file: "110-horizontes-sem-peso.mp3" },
+
+  // ---- Cantos Gregorianos (coro monástico em latim) ----
+  { titulo: "Luz Eterna",                  tags: ["Cantos Gregorianos", "Meditação"],        file: "111-luz-eterna.mp3" },
+  { titulo: "Cântico da Luz Eterna",       tags: ["Cantos Gregorianos", "Meditação"],        file: "112-cantico-da-luz-eterna.mp3" },
+  { titulo: "Voz da Luz Eterna",           tags: ["Cantos Gregorianos", "Cura"],             file: "113-voz-da-luz-eterna.mp3" },
+  { titulo: "Coro da Luz Eterna",          tags: ["Cantos Gregorianos", "Meditação"],        file: "114-coro-da-luz-eterna.mp3" },
+  { titulo: "Luz Vinda das Trevas",        tags: ["Cantos Gregorianos", "Autoconhecimento"], file: "115-luz-vinda-das-trevas.mp3" },
+  { titulo: "Aurora das Trevas",           tags: ["Cantos Gregorianos", "Autoconhecimento"], file: "116-aurora-das-trevas.mp3" },
+  { titulo: "Luz no Silêncio",             tags: ["Cantos Gregorianos", "Meditação"],        file: "117-luz-no-silencio.mp3" },
+  { titulo: "Silêncio Sagrado",            tags: ["Cantos Gregorianos", "Sono"],             file: "118-silencio-sagrado.mp3" },
+  { titulo: "Súplica no Silêncio",         tags: ["Cantos Gregorianos", "Meditação"],        file: "119-suplica-no-silencio.mp3" },
+  { titulo: "Véspera Silenciosa",          tags: ["Cantos Gregorianos", "Sono"],             file: "120-vespera-silenciosa.mp3" },
+  { titulo: "Luz nas Trevas",              tags: ["Cantos Gregorianos", "Cura"],             file: "121-luz-nas-trevas.mp3" },
+  { titulo: "Vigília nas Trevas",          tags: ["Cantos Gregorianos", "Terceiro Olho"],    file: "122-vigilia-nas-trevas.mp3" },
+  { titulo: "Luz na Unidade",              tags: ["Cantos Gregorianos", "Meditação"],        file: "123-luz-na-unidade.mp3" },
+  { titulo: "Uníssono Sagrado",            tags: ["Cantos Gregorianos", "Foco"],             file: "124-unissono-sagrado.mp3" },
+  { titulo: "Luz Interior",                tags: ["Cantos Gregorianos", "Autoconhecimento"], file: "125-luz-interior.mp3" },
+  { titulo: "Claustro Interior",           tags: ["Cantos Gregorianos", "Terceiro Olho"],    file: "126-claustro-interior.mp3" },
+  { titulo: "Luz que Cura",                tags: ["Cantos Gregorianos", "Cura"],             file: "127-luz-que-cura.mp3" },
+  { titulo: "Bálsamo Sagrado",             tags: ["Cantos Gregorianos", "Cura"],             file: "128-balsamo-sagrado.mp3" },
+  { titulo: "Luz entre as Sombras",        tags: ["Cantos Gregorianos", "Relaxamento"],      file: "129-luz-entre-as-sombras.mp3" },
+  { titulo: "Cântico das Sombras",         tags: ["Cantos Gregorianos", "Relaxamento"],      file: "130-cantico-das-sombras.mp3" },
 ];
 
 // Ordem em que os filtros de tag aparecem na interface.
 const TAG_ORDER = [
   "Relaxamento", "Meditação", "Autoconhecimento", "Prosperidade",
-  "Sono", "Cura", "Foco", "Terceiro Olho",
+  "Sono", "Cura", "Foco", "Terceiro Olho", "Cantos Gregorianos",
 ];
 
 // Atribui um id estável a cada faixa (usado por favoritos e player).
